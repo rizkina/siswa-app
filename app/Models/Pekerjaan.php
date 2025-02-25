@@ -12,4 +12,13 @@ class Pekerjaan extends Model
         'id_pekerjaan',
         'pekerjaan',
     ];
+
+    public function ibu()
+    {
+        return $this->hasMany(Ibu::class, 'pendidikan_id', 'id_pendidikan');
+    }
+    // public function ayah()
+    // {
+    //     return $this->hasMany(Ayah::class, 'pendidikan_id', 'id_pendidikan');
+    // }
 }

@@ -31,17 +31,29 @@ class SiswaResource extends Resource
                 Forms\Components\TextInput::make('nisn')
                     ->label('NISN')
                     ->required()
-                    ->unique(ignoreRecord: true),
+                    ->unique(ignoreRecord: true)
+                    ->minLength(10) // Minimal 10 karakter
+                    ->maxLength(10) // Maksimal 10 karakter
+                    ->numeric() // Hanya angka (0-9)
+                    ->rules(['regex:/^\d{10}$/']) // Pastikan tepat 10 digit angka
+                    ->placeholder('Masukkan NISN'),
                 Forms\Components\TextInput::make('nipd')
                     ->label('NIPD')
+                    ->placeholder('Masukkan NIPD/NIS')
                     // ->required()
                     ->unique(ignoreRecord: true),
                 Forms\Components\TextInput::make('nik')
                     ->label('NIK')
                     ->required()
-                    ->unique(ignoreRecord: true),
+                    ->unique(ignoreRecord: true)
+                    ->minLength(16) // Minimal 10 karakter
+                    ->maxLength(16) // Maksimal 10 karakter
+                    ->numeric() // Hanya angka (0-9)
+                    ->rules(['regex:/^\d{16}$/']) // Pastikan tepat 10 digit angka
+                    ->placeholder('Masukkan NIK'),
                 Forms\Components\TextInput::make('nama')
                     ->label('Nama')
+                    ->placeholder('Masukkan Nama')
                     ->required(),
                 Forms\Components\Radio::make('jns_kelamin')
                     ->label('Jenis Kelamin')
@@ -53,15 +65,23 @@ class SiswaResource extends Resource
                     ->unique(ignoreRecord: true),
                 Forms\Components\TextInput::make('tempat_lahir')
                     ->label('Tempat Lahir')
+                    ->placeholder('Masukkan Tempat Lahir')
                     ->required(),
                 Forms\Components\DatePicker::make('tanggal_lahir')
                     ->label('Tanggal Lahir')
                     ->required(),
+                // Forms\Components\Select::make('agama_id')
+                //     ->label('Agama')
+                //     ->options(Agama::pluck('agama', 'id')->toArray())
+                //     ->required(),
                 Forms\Components\Select::make('agama_id')
                     ->label('Agama')
-                    ->options(Agama::pluck('agama', 'id')->toArray())
+                    ->relationship('agama', 'agama', function ($query) {
+                        return $query->orderBy('id_agama', 'asc');
+                    })
                     ->required(),
                 Forms\Components\TextInput::make('alamat')
+                    ->placeholder('Masukkan Alamat')
                     ->label('Alamat'),
                 Forms\Components\FileUpload::make('foto')
                     ->label('Foto'),
@@ -72,7 +92,43 @@ class SiswaResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('nama')
+                    ->label('Nama')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\ImageColumn::make('foto')
+                    ->circular(),
+                Tables\Columns\TextColumn::make('nisn')
+                    ->label('NISN')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('nipd')
+                    ->label('NIPD')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('nik')
+                    ->label('NIK')  
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('jns_kelamin')
+                    ->label('L/P')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('tempat_lahir')
+                    ->label('Tempat Lahir')    
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('tanggal_lahir')
+                    ->label('Tanggal Lahir')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('agama.agama')
+                    ->label('Agama')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('alamat')
+                    ->label('Alamat')
+                    ->searchable(),
             ])
             ->filters([
                 //

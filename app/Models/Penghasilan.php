@@ -12,4 +12,13 @@ class Penghasilan extends Model
         'id_penghasilan',
         'penghasilan',
     ];
+
+    public function ibu()
+    {
+        return $this->hasMany(Ibu::class, 'pendidikan_id', 'id_pendidikan');
+    }
+    // public function ayah()
+    // {
+    //     return $this->hasMany(Ayah::class, 'pendidikan_id', 'id_pendidikan');
+    // }
 }

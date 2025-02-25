@@ -26,6 +26,6 @@ class Siswa extends Model
 
     public function agama()
     {
-        return $this->belongsTo(Agama::class);
+        return $this->belongsTo(Agama::class, 'agama_id', 'id_agama');
     }
 }

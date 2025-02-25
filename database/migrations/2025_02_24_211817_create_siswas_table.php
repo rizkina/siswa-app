@@ -20,7 +20,8 @@ return new class extends Migration
             $table->enum('jns_kelamin', ['L', 'P'])->nullable();
             $table->string('tempat_lahir')->nullable();
             $table->date('tanggal_lahir')->nullable();
-            $table->foreignId('agama_id')->nullable()->constrained('agamas')->nullOnDelete()->cascadeOnUpdate();
+            $table->string('agama_id')->nullable();
+            $table->foreign('agama_id')->references('id_agama')->on('agamas')->cascadeOnUpdate()->nullOnDelete();
             $table->string('alamat')->nullable();
             $table->text('foto')->nullable();
             $table->softDeletes();
