@@ -29,14 +29,14 @@ class PendidikanResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('id')
+                Forms\Components\TextInput::make('id_pendidikan')
                     ->label('Kode')
                     ->required()
                     ->numeric()
                     ->unique(ignoreRecord: true),
                 Forms\Components\TextInput::make('pendidikan')
-                    ->required()
-                    ->maxLength(255),
+                    ->label('Pendidikan')
+                    ->required(),
             ]);
     }
 
@@ -44,18 +44,14 @@ class PendidikanResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')
+                Tables\Columns\TextColumn::make('id_pendidikan')
                     ->label('Kode')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('pendidikan')
-                    ->label('Jenjang Pendidikan')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('pendidikan')
+                    ->label('Pendidikan')
+                    ->sortable()
+                    ->searchable(),
             ])
             ->filters([
                 //

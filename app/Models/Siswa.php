@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+use App\Models\Agama;
 
 class Siswa extends Model
 {
@@ -20,4 +23,9 @@ class Siswa extends Model
         'alamat',
         'foto',
     ];
+
+    public function agama()
+    {
+        return $this->belongsTo(Agama::class);
+    }
 }

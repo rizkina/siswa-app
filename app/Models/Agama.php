@@ -9,7 +9,7 @@ class Agama extends Model
     protected $table = 'agamas';
 
     protected $fillable = [
-        'id',
+        'id_agama',
         'agama',
     ];
 }

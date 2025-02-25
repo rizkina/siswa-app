@@ -9,7 +9,7 @@ class Penghasilan extends Model
     protected $table = 'penghasilans';
 
     protected $fillable = [
-        'id',
+        'id_penghasilan',
         'penghasilan',
     ];
 }

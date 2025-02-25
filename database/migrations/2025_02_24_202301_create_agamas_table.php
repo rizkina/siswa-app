@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('agamas', function (Blueprint $table) {
             $table->id();
+            $table->string('id_agama')->unique();
             $table->string('agama');
             $table->softDeletes();
         });

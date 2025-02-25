@@ -16,7 +16,6 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class AgamaResource extends Resource
 {
     protected static ?string $model = Agama::class;
-
     protected static ?string $navigationGroup = 'Data Referensi';
 
     protected static ?string $modelLabel = 'Agama';
@@ -29,14 +28,14 @@ class AgamaResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('id')
+                Forms\Components\TextInput::make('id_agama')
                     ->label('Kode')
                     ->required()
                     ->numeric()
                     ->unique(ignoreRecord: true),
                 Forms\Components\TextInput::make('agama')
-                    ->required()
-                    ->maxLength(255),
+                    ->label('Agama')
+                    ->required(),
             ]);
     }
 
@@ -44,18 +43,14 @@ class AgamaResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')
+                Tables\Columns\TextColumn::make('id_agama')
                     ->label('Kode')
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('agama')
                     ->label('Agama')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->searchable(),
             ])
             ->filters([
                 //

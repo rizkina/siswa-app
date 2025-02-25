@@ -9,7 +9,7 @@ class Pendidikan extends Model
     protected $table = 'pendidikans';
 
     protected $fillable = [
-        'id',
+        'id_pendidikan',
         'pendidikan',
     ];
 }

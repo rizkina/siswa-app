@@ -29,15 +29,14 @@ class PenghasilanResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('id')
+                Forms\Components\TextInput::make('id_penghasilan')
                     ->label('Kode')
                     ->required()
                     ->numeric()
                     ->unique(ignoreRecord: true),
                 Forms\Components\TextInput::make('penghasilan')
                     ->label('Penghasilan')
-                    ->required()
-                    ->maxLength(255),
+                    ->required(),
             ]);
     }
 
@@ -45,7 +44,7 @@ class PenghasilanResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')
+                Tables\Columns\TextColumn::make('id_penghasilan')
                     ->label('Kode')
                     ->sortable()
                     ->searchable(),
@@ -53,10 +52,6 @@ class PenghasilanResource extends Resource
                     ->label('Penghasilan')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
