@@ -18,6 +18,8 @@ class SiswaResource extends Resource
 {
     protected static ?string $model = Siswa::class;
 
+    protected static ?string $navigationGroup = 'Data Siswa';
+
     protected static ?string $modelLabel = 'Siswa';
 
     protected static ?string $pluralModelLabel = 'Siswa';
@@ -68,6 +70,7 @@ class SiswaResource extends Resource
                     ->required(),
                 Forms\Components\DatePicker::make('tanggal_lahir')
                     ->label('Tanggal Lahir')
+                    // ->native(false)
                     ->required(),
                 // Forms\Components\Select::make('agama_id')
                 //     ->label('Agama')

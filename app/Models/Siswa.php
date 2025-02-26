@@ -37,4 +37,15 @@ class Siswa extends Model
     {
         return $this->hasOne(Ayah::class, 'nisn', 'nisn');
     }
+
+    public function file()
+    {
+        return $this->hasMany(File::class, 'nisn', 'nisn');
+    }
+
+    // Mendapatkan file berdasarkan kategori
+    public function getFileByCategory($kategori)
+    {
+        return $this->files()->where('kategori', $kategori)->first();
+    }
 }

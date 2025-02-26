@@ -17,6 +17,8 @@ class IbuResource extends Resource
 {
     protected static ?string $model = Ibu::class;
 
+    protected static ?string $navigationGroup = 'Data Siswa';
+
     protected static ?string $modelLabel = 'Ibu';
 
     protected static ?string $pluralModelLabel = 'Ibu';
@@ -33,13 +35,12 @@ class IbuResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('nisn')
+                Forms\Components\Placeholder::make('nisn')
                     ->label('NISN')
-                    ->readOnly(),
-                Forms\Components\TextInput::make('nama_siswa')
+                    ->content(fn($record) => $record->siswa?->nisn ?? 'Tidak ada data'),
+                Forms\Components\Placeholder::make('nama_siswa')
                     ->label('Nama Siswa')
-                    ->formatStateUsing(fn($record) => $record->siswa?->nama ?? 'Tidak ada data')
-                    ->readOnly(),
+                    ->content(fn($record) => $record->siswa?->nama ?? 'Tidak ada data'),
                 Forms\Components\TextInput::make('nik')
                     ->label('NIK')
                     ->required()
