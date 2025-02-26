@@ -31,9 +31,9 @@ class SiswaResource extends Resource
                 Forms\Components\TextInput::make('nisn')
                     ->label('NISN')
                     ->required()
+                    // ->readOnly()
                     ->unique(ignoreRecord: true)
-                    ->minLength(10) // Minimal 10 karakter
-                    ->maxLength(10) // Maksimal 10 karakter
+                    ->length(10) // Minimal 10 karakter
                     ->numeric() // Hanya angka (0-9)
                     ->rules(['regex:/^\d{10}$/']) // Pastikan tepat 10 digit angka
                     ->placeholder('Masukkan NISN'),
@@ -46,8 +46,7 @@ class SiswaResource extends Resource
                     ->label('NIK')
                     ->required()
                     ->unique(ignoreRecord: true)
-                    ->minLength(16) // Minimal 10 karakter
-                    ->maxLength(16) // Maksimal 10 karakter
+                    ->length(16) // Minimal 10 karakter
                     ->numeric() // Hanya angka (0-9)
                     ->rules(['regex:/^\d{16}$/']) // Pastikan tepat 10 digit angka
                     ->placeholder('Masukkan NIK'),
@@ -107,7 +106,7 @@ class SiswaResource extends Resource
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('nik')
-                    ->label('NIK')  
+                    ->label('NIK')
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('jns_kelamin')
@@ -115,7 +114,7 @@ class SiswaResource extends Resource
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('tempat_lahir')
-                    ->label('Tempat Lahir')    
+                    ->label('Tempat Lahir')
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('tanggal_lahir')

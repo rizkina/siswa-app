@@ -3,14 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Pendidikan;
-use App\Models\Pekerjaan;
-use App\Models\Penghasilan;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Ibu extends Model
+class Ayah extends Model
 {
-    protected $table = 'ibus';
+    protected $table = 'ayahs';
 
     protected $fillable = [
         'nisn',

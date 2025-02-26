@@ -28,4 +28,13 @@ class Siswa extends Model
     {
         return $this->belongsTo(Agama::class, 'agama_id', 'id_agama');
     }
+
+    public function ibu()
+    {
+        return $this->hasOne(Ibu::class, 'nisn', 'nisn');
+    }
+    public function ayah()
+    {
+        return $this->hasOne(Ayah::class, 'nisn', 'nisn');
+    }
 }

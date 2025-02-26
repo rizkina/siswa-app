@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\IbuResource\Pages;
-use App\Filament\Resources\IbuResource\RelationManagers;
-use App\Models\Ibu;
+use App\Filament\Resources\AyahResource\Pages;
+use App\Filament\Resources\AyahResource\RelationManagers;
+use App\Models\Ayah;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,21 +13,20 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class IbuResource extends Resource
+class AyahResource extends Resource
 {
-    protected static ?string $model = Ibu::class;
+    protected static ?string $model = Ayah::class;
 
-    protected static ?string $modelLabel = 'Ibu';
+    protected static ?string $modelLabel = 'Ayah';
 
-    protected static ?string $pluralModelLabel = 'Ibu';
+    protected static ?string $pluralModelLabel = 'Ayah';
 
-    protected static ?string $navigationIcon = 'heroicon-c-user-plus';
+    protected static ?string $navigationIcon = 'heroicon-c-user-minus';
 
     public static function query(Builder $query): Builder
     {
         return $query->with('siswa');
     }
-
 
     public static function form(Form $form): Form
     {
@@ -48,9 +47,9 @@ class IbuResource extends Resource
                     ->rules(['regex:/^\d{16}$/']) // Pastikan tepat 16 digit angka
                     ->placeholder('Masukkan NIK'),
                 Forms\Components\TextInput::make('nama')
-                    ->label('Nama Ibu')
+                    ->label('Nama Ayah')
                     ->required()
-                    ->placeholder('Masukkan Nama Ibu'),
+                    ->placeholder('Masukkan Nama Ayah'),
                 Forms\Components\Select::make('tahun_lahir')
                     ->label('Tahun Lahir')
                     ->options(
@@ -88,7 +87,7 @@ class IbuResource extends Resource
                     ->label('Nama Siswa')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('nama')
-                    ->label('Nama Ibu')
+                    ->label('Nama Ayah')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('nik')
                     ->label('NIK'),
@@ -124,9 +123,9 @@ class IbuResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListIbus::route('/'),
-            'create' => Pages\CreateIbu::route('/create'),
-            'edit' => Pages\EditIbu::route('/{record}/edit'),
+            'index' => Pages\ListAyahs::route('/'),
+            'create' => Pages\CreateAyah::route('/create'),
+            'edit' => Pages\EditAyah::route('/{record}/edit'),
         ];
     }
 }
