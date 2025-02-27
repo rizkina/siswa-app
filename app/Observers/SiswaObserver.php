@@ -34,12 +34,15 @@ class SiswaObserver
             'penghasilan_id' => null,
         ]);
 
-        User::create([
+        $user = User::create([
             'username' => $siswa->nisn, // Menggunakan NISN sebagai username
             'name' => $siswa->nama,
             'email' => $siswa->nisn . '@sekolah.sch.id', // Menggunakan NISN sebagai email
             'password' => bcrypt($siswa->tanggal_lahir),
         ]);
+
+        // Berikan role siswa ke user
+        $user->assignRole('Siswa');
     }
 
     /**

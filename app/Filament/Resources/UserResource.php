@@ -69,6 +69,8 @@ class UserResource extends Resource
                 // Tables\Columns\TextColumn::make('email_verified_at')
                 //     ->dateTime()
                 //     ->sortable(),
+                Tables\Columns\TextColumn::make('roles.name')
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
                     ->sortable()
