@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\Ibu;
 use App\Models\Ayah;
 use App\Models\Siswa;
+use App\Models\User;
 
 class SiswaObserver
 {
@@ -31,6 +32,13 @@ class SiswaObserver
             'pendidikan_id' => null,
             'pekerjaan_id' => null,
             'penghasilan_id' => null,
+        ]);
+
+        User::create([
+            'username' => $siswa->nisn, // Menggunakan NISN sebagai username
+            'name' => $siswa->nama,
+            'email' => $siswa->nisn . '@sekolah.sch.id', // Menggunakan NISN sebagai email
+            'password' => bcrypt($siswa->tanggal_lahir),
         ]);
     }
 
