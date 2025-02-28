@@ -13,9 +13,12 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Traits\HasRoles;
 
 class SiswaResource extends Resource
 {
+    use HasRoles;
     protected static ?string $model = Siswa::class;
 
     protected static ?string $navigationGroup = 'Data Siswa';
@@ -30,69 +33,88 @@ class SiswaResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('nisn')
-                    ->label('NISN')
-                    ->required()
-                    // ->readOnly()
-                    ->unique(ignoreRecord: true)
-                    ->length(10) // Minimal 10 karakter
-                    ->numeric() // Hanya angka (0-9)
-                    ->rules(['regex:/^\d{10}$/']) // Pastikan tepat 10 digit angka
-                    ->placeholder('Masukkan NISN'),
-                Forms\Components\TextInput::make('nipd')
-                    ->label('NIPD')
-                    ->placeholder('Masukkan NIPD/NIS')
-                    // ->required()
-                    ->unique(ignoreRecord: true),
-                Forms\Components\TextInput::make('nik')
-                    ->label('NIK')
-                    ->required()
-                    ->unique(ignoreRecord: true)
-                    ->length(16) // Minimal 10 karakter
-                    ->numeric() // Hanya angka (0-9)
-                    ->rules(['regex:/^\d{16}$/']) // Pastikan tepat 10 digit angka
-                    ->placeholder('Masukkan NIK'),
-                Forms\Components\TextInput::make('nama')
-                    ->label('Nama')
-                    ->placeholder('Masukkan Nama')
-                    ->required(),
-                Forms\Components\Radio::make('jns_kelamin')
-                    ->label('Jenis Kelamin')
-                    ->required()
-                    ->options([
-                        'L' => 'Laki-laki',
-                        'P' => 'Perempuan',
-                    ])
-                    ->unique(ignoreRecord: true),
-                Forms\Components\TextInput::make('tempat_lahir')
-                    ->label('Tempat Lahir')
-                    ->placeholder('Masukkan Tempat Lahir')
-                    ->required(),
-                Forms\Components\DatePicker::make('tanggal_lahir')
-                    ->label('Tanggal Lahir')
-                    // ->native(false)
-                    ->required(),
-                // Forms\Components\Select::make('agama_id')
-                //     ->label('Agama')
-                //     ->options(Agama::pluck('agama', 'id')->toArray())
-                //     ->required(),
-                Forms\Components\Select::make('agama_id')
-                    ->label('Agama')
-                    ->relationship('agama', 'agama', function ($query) {
-                        return $query->orderBy('id_agama', 'asc');
-                    })
-                    ->required(),
-                Forms\Components\TextInput::make('alamat')
-                    ->placeholder('Masukkan Alamat')
-                    ->label('Alamat'),
-                Forms\Components\FileUpload::make('foto')
-                    ->label('Foto'),
+                Forms\Components\Group::make()
+                    ->schema([
+                        Forms\Components\Section::make()
+                            ->schema([
+                                Forms\Components\TextInput::make('nisn')
+                                    ->label('NISN')
+                                    ->required()
+                                    // ->readOnly()
+                                    ->unique(ignoreRecord: true)
+                                    ->length(10) // Minimal 10 karakter
+                                    ->numeric() // Hanya angka (0-9)
+                                    ->rules(['regex:/^\d{10}$/']) // Pastikan tepat 10 digit angka
+                                    ->placeholder('Masukkan NISN'),
+                                Forms\Components\TextInput::make('nipd')
+                                    ->label('NIPD')
+                                    ->placeholder('Masukkan NIPD/NIS')
+                                    // ->required()
+                                    ->unique(ignoreRecord: true),
+                                Forms\Components\TextInput::make('nik')
+                                    ->label('NIK')
+                                    ->required()
+                                    ->unique(ignoreRecord: true)
+                                    ->length(16) // Minimal 10 karakter
+                                    ->numeric() // Hanya angka (0-9)
+                                    ->rules(['regex:/^\d{16}$/']) // Pastikan tepat 10 digit angka
+                                    ->placeholder('NIK Siswa'),
+                                Forms\Components\TextInput::make('nama')
+                                    ->label('Nama')
+                                    ->placeholder('Nama Siswa')
+                                    ->required(),
+                                Forms\Components\Radio::make('jns_kelamin')
+                                    ->label('Jenis Kelamin')
+                                    ->required()
+                                    ->options([
+                                        'L' => 'Laki-laki',
+                                        'P' => 'Perempuan',
+                                    ])
+                                    ->unique(ignoreRecord: true),
+
+                            ])
+                    ]),
+                Forms\Components\Group::make()
+                    ->schema([
+                        Forms\Components\Section::make()
+                            ->schema([
+                                Forms\Components\Fieldset::make('Data Kelahiran')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('tempat_lahir')
+                                            ->label('Tempat Lahir')
+                                            ->placeholder('Tempat Lahir')
+                                            ->required(),
+                                        Forms\Components\DatePicker::make('tanggal_lahir')
+                                            ->label('Tanggal Lahir')
+                                            // ->native(false)
+                                            ->required(),
+                                    ]),
+                                Forms\Components\Select::make('agama_id')
+                                    ->label('Agama')
+                                    ->relationship('agama', 'agama', function ($query) {
+                                        return $query->orderBy('id_agama', 'asc');
+                                    })
+                                    ->required(),
+                                Forms\Components\TextInput::make('alamat')
+                                    ->placeholder('Masukkan Alamat')
+                                    ->label('Alamat'),
+                                Forms\Components\FileUpload::make('foto')
+                                    ->label('Foto'),
+                            ])
+                    ]),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(function (Builder $query) {
+                $is_Siswa = Auth::user()->hasRole('Siswa');
+
+                if ($is_Siswa) {
+                    $query->where('nisn', Auth::user()->username);
+                }
+            })
             ->columns([
                 Tables\Columns\TextColumn::make('nama')
                     ->label('Nama')
@@ -122,6 +144,7 @@ class SiswaResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('tanggal_lahir')
                     ->label('Tanggal Lahir')
+                    ->date()
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('agama.agama')
