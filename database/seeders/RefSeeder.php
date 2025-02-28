@@ -74,6 +74,7 @@ class RefSeeder extends Seeder
             ['id_penghasilan' => 99, 'penghasilan' => 'Tidak Berpenghasilan'],
         ]);
 
+        // Isi Tabel Agama
         DB::table('agamas')->insert([
             ['id_agama' => 1, 'agama' => 'Islam'],
             ['id_agama' => 2, 'agama' => 'Kristen'],
@@ -83,6 +84,14 @@ class RefSeeder extends Seeder
             ['id_agama' => 6, 'agama' => 'Konghucu'],
             ['id_agama' => 7, 'agama' => 'Kepercayaan kpd Tuhan YME'],
             ['id_agama' => 99, 'agama' => 'Lainnya'],
+        ]);
+
+        // Isi tabel User dengan super admin
+        DB::table('users')->insert([
+            'username' => 'superadmin',
+            'name' => 'Super Admin',
+            'email' => 'su@mail.com',
+            'password' => bcrypt('Test_123'),
         ]);
     }
 }
