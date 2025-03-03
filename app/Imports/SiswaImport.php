@@ -3,42 +3,78 @@
 namespace App\Imports;
 
 use App\Models\Siswa;
-use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Events\BeforeImport;
+use App\Models\Agama;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\ToCollection;
+use Illuminate\Support\Collection;
 
-class SiswaImport implements ToModel, WithHeadingRow, WithEvents
+
+// class SiswaImport implements ToModel, WithHeadingRow, WithEvents
+class SiswaImport implements ToCollection
 {
-    public $totalRows = 0;
-    public $importedRows = 0;
-    public $failedRows = 0;
+    public $sukses = 0;
+    public $gagal = 0;
+    public $totalBaris = 0;
+    public $gagalData = [];
 
-    public function model(array $row)
+    public function collection(Collection $rows)
     {
-        try {
-            Siswa::create([
-                'nisn' => $row['nisn'] ?? null,
-                'nama' => $row['nama'] ?? null,
-                'kelas' => $row['kelas'] ?? null,
-                'ayah_nama' => $row['ayah_nama'] ?? null,
-                'ibu_nama' => $row['ibu_nama'] ?? null,
-            ]);
+        // Menghapus header
+        $rows->shift();
 
-            $this->importedRows++; // Tambah hitungan berhasil
-        } catch (\Exception $e) {
-            Log::error("Gagal import data: " . $e->getMessage());
-            $this->failedRows++; // Tambah hitungan gagal
+        // Hitung total baris
+        $this->totalBaris = $rows->count();
+
+        foreach ($rows as $row) {
+            try {
+                // pastikan data tidak kosong
+                if (!isset($row[0]) || !isset($row[1]) || !isset($row[2]) || !isset($row[3])) {
+                    $this->gagal++;
+                    $this->gagalData[] = $row;
+                    continue;
+                }
+
+                // Cari ID Agama jika perlu
+                $agama = Agama::where('id_agama', $row[7])->first();
+                $agamaId = $agama ? $agama->id_agama : null;
+
+                // Cek apakah data sudah ada berdasarkan NISN
+                $existingSiswa = Siswa::where('nisn', $row[0])->first();
+
+                if ($existingSiswa) {
+                    // Jika sudah ada, skip atau update jika perlu
+                    $this->gagal++;
+                    continue;
+                }
+                // Simpan data
+                Siswa::create([
+                    'nisn' => $row[0] ?? null,
+                    'nipd' => $row[1] ?? null,
+                    'nik' => $row[2] ?? null,
+                    'nama' => $row[3] ?? null,
+                    'jns_kelamin' => $row[4] ?? null,
+                    'tempat_lahir' => $row[5] ?? null,
+                    'tanggal_lahir' => $row[6] ?? null,
+                    'agama_id' => $agamaId,
+                    'alamat' => $row[8] ?? null,
+                ]);
+
+                $this->sukses++;
+            } catch (\Exception $e) {
+                Log::error('Gagal import data siswa : ' . $e->getMessage());
+                $this->gagal++;
+                $this->gagalData[] = $row;
+            }
         }
     }
 
-    public function registerEvents(): array
+    public function getHasilImport()
     {
         return [
-            BeforeImport::class => function (BeforeImport $event) {
-                $this->totalRows = count($event->getReader()->getSheet(0)->toArray());
-            },
+            'total' => $this->totalBaris,
+            'sukses' => $this->sukses,
+            'gagal' => $this->gagal,
+            'gagalData' => $this->gagalData
         ];
     }
 }
