@@ -48,17 +48,25 @@ class SiswaObserver
     /**
      * Handle the Siswa "updated" event.
      */
-    public function updated(Siswa $siswa): void
+    public function updated(Siswa $siswa)
     {
-        //
+        $user = User::where('username', $siswa->getOriginal('nisn'))->first();
+        if ($user) {
+            $user->update([
+                'name'     => $siswa->nama,
+                'username' => $siswa->nisn, // Update username jika NISN berubah
+                'email' => $siswa->nisn . '@sekolah.sch.id',
+                'password' => bcrypt($siswa->tanggal_lahir),
+            ]);
+        }
     }
 
     /**
      * Handle the Siswa "deleted" event.
      */
-    public function deleted(Siswa $siswa): void
+    public function deleted(Siswa $siswa)
     {
-        //
+        User::where('username', $siswa->nisn)->delete();
     }
 
     /**
