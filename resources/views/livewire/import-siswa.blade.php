@@ -21,41 +21,21 @@
                             </div>
                         @endif
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-                        <form wire:submit="import_excel" enctype="multipart/form-data">
-=======
-                        <form action="{{ route('import_siswa') }}" method="POST" enctype="multipart/form-data">
->>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
-=======
-                        <form action="{{ route('import_siswa') }}" method="POST" enctype="multipart/form-data">
->>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
-                            @csrf
-
-                            <!-- Drag & Drop Area -->
+                        <form wire:submit.prevent="import_excel" enctype="multipart/form-data" @csrf <!-- Drag & Drop
+                            Area -->
                             <div id="drop-area"
                                 class="w-full p-6 border-2 border-dashed border-gray-400 rounded-lg bg-white text-center cursor-pointer hover:border-blue-500 transition">
                                 <p class="text-gray-700">Seret & Letakkan file di sini atau</p>
                                 <label for="file"
                                     class="text-blue-600 font-semibold cursor-pointer underline">Browse</label>
-<<<<<<< HEAD
-<<<<<<< HEAD
                                 <input type="file" wire:model="file" id="file" class="hidden"
                                     wire:change="$refresh">
-=======
-                                <input type="file" id="file" name="file" class="hidden">
->>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
-=======
-                                <input type="file" id="file" name="file" class="hidden">
->>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
                             </div>
 
                             <!-- Menampilkan Nama File -->
                             <p id="file-name" class="mt-2 text-gray-600 text-sm text-center"></p>
 
                             <button type="submit"
-<<<<<<< HEAD
-<<<<<<< HEAD
                                 class="w-full bg-blue-400 hover:bg-blue-600 text-white font-semibold py-3 rounded-lg shadow-md transition duration-300 flex items-center justify-center gap-2"
                                 wire:loading.attr="disabled">
                                 <span class="w-5 h-5">@svg('heroicon-c-document-arrow-up')</span>
@@ -69,17 +49,6 @@
                             @error('file')
                                 <p class="text-red-600 text-sm mt-2">{{ $message }}</p>
                             @enderror
-=======
-=======
->>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
-                                class="w-full bg-blue-400 hover:bg-blue-600 text-white font-semibold py-3 rounded-lg shadow-md transition duration-300 flex items-center justify-center gap-2">
-                                <span class="w-5 h-5">@svg('heroicon-c-document-arrow-up')</span>
-                                Import Data
-                            </button>
-<<<<<<< HEAD
->>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
-=======
->>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
                         </form>
                     </div>
                 </div>
@@ -104,9 +73,7 @@
             </div>
 
             <!-- Hasil Import -->
-<<<<<<< HEAD
-<<<<<<< HEAD
-            @if (session('importSummary'))
+            @if (session()->has('importSummary'))
                 @php $summary = session('importSummary'); @endphp
                 <div class="mt-6 p-4 bg-gray-100 border rounded-lg">
                     <h3 class="text-lg font-semibold mb-2">Hasil Import</h3>
@@ -117,92 +84,41 @@
                         <button success
                             class="mt-4 inline-block bg-green-500 text-white px-4 py-2 rounded-lg shadow hover:bg-green-600 transition">Kembali</button>
                     </a>
-=======
-=======
->>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
-            @if (session('import_result'))
-                <div class="mt-6 p-4 bg-gray-100 border rounded-lg">
-                    <h3 class="text-lg font-semibold mb-2">Hasil Import</h3>
-                    <p class="text-gray-700">Total Baris: <strong>{{ session('import_result')['total'] }}</strong></p>
-                    <p class="text-green-700">Berhasil: <strong>{{ session('import_result')['sukses'] }}</strong></p>
-                    <p class="text-red-700">Gagal: <strong>{{ session('import_result')['gagal'] }}</strong></p>
-<<<<<<< HEAD
->>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
-=======
->>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
                 </div>
-            @endif
-
-            <!-- Hasil Upload -->
-            @if (isset($data_siswa) && count($data_siswa) > 0)
-                <div class="mt-6">
-                    <h3 class="text-lg font-semibold mb-2">Data Berhasil Diimport</h3>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full bg-white border border-gray-300">
-                            <thead>
-                                <tr class="bg-gray-200">
-                                    <th class="py-2 px-4 border">No</th>
-                                    <th class="py-2 px-4 border">NISN</th>
-                                    <th class="py-2 px-4 border">NIPD</th>
-                                    <th class="py-2 px-4 border">NIK</th>
-                                    <th class="py-2 px-4 border">Nama</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($data_siswa as $index => $siswa)
-                                    <tr class="border">
-                                        <td class="py-2 px-4 border">{{ $index + 1 }}</td>
-                                        <td class="py-2 px-4 border">{{ $siswa->nisn }}</td>
-                                        <td class="py-2 px-4 border">{{ $siswa->nipd }}</td>
-                                        <td class="py-2 px-4 border">{{ $siswa->nik }}</td>
-                                        <td class="py-2 px-4 border">{{ $siswa->nama }}</td>
+                <!-- Hasil Upload -->
+                @if ($summary['gagal'] > 0)
+                    <div class="mt-6 p-4 bg-gray-100 border rounded-lg">
+                        <h3 class="text-lg font-semibold mb-2">Data Gagal Diimport</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white border border-gray-300">
+                                <thead>
+                                    <tr class="bg-gray-200">
+                                        <th class="py-2 px-4 border">Baris</th>
+                                        <th class="py-2 px-4 border">NISN</th>
+                                        <th class="py-2 px-4 border">Nama</th>
+                                        <th class="py-2 px-4 border">Keterangan</th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    @foreach ($summary['gagalData'] as $index => $siswa)
+                                        <tr class="border">
+                                            <td class="py-2 px-4 border">{{ $siswa['baris'] }}</td>
+                                            <td class="py-2 px-4 border">{{ $siswa['data'][0] }}</td>
+                                            <td class="py-2 px-4 border">{{ $siswa['data'][3] }}</td>
+                                            <td class="py-2 px-4 border">{{ $siswa['error'] }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
+                @endif
+            @endif
+            @if (session()->has('error'))
+                <div class="alert alert-danger">
+                    {{ session('error') }}
                 </div>
             @endif
         </div>
     </div>
-<<<<<<< HEAD
-<<<<<<< HEAD
-    {{-- <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            let dropArea = document.getElementById('drop-area');
-            let fileInput = document.getElementById('file');
-            let fileNameDisplay = document.getElementById('file-name');
-
-            dropArea.addEventListener('dragover', function(event) {
-                event.preventDefault();
-                dropArea.classList.add('border-blue-500');
-            });
-
-            dropArea.addEventListener('dragleave', function() {
-                dropArea.classList.remove('border-blue-500');
-            });
-
-            dropArea.addEventListener('drop', function(event) {
-                event.preventDefault();
-                dropArea.classList.remove('border-blue-500');
-
-                let files = event.dataTransfer.files;
-                if (files.length > 0) {
-                    fileInput.files = files;
-                    fileNameDisplay.textContent = files[0].name;
-                }
-            });
-
-            fileInput.addEventListener('change', function() {
-                if (fileInput.files.length > 0) {
-                    fileNameDisplay.textContent = fileInput.files[0].name;
-                }
-            });
-        });
-    </script> --}}
-
-=======
->>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
-=======
->>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
 </div>

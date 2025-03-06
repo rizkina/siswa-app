@@ -7,30 +7,15 @@ use Livewire\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\SiswaImport;
 use App\Exports\SiswaExport;
-<<<<<<< HEAD
-<<<<<<< HEAD
 use Illuminate\Support\Facades\Log;
-=======
-use Illuminate\Support\Facades\Storage;
->>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
-=======
-use Illuminate\Support\Facades\Storage;
->>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
 
 class ImportSiswa extends Component
 {
     use WithFileUploads;
 
     public $file;
-<<<<<<< HEAD
-<<<<<<< HEAD
-    public $importSummary;
-=======
     public $importSummary = [];
->>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
-=======
-    public $importSummary = [];
->>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
+
 
     public function render()
     {
@@ -43,8 +28,7 @@ class ImportSiswa extends Component
             'file' => 'required|mimes:xlsx,xls,csv|max:2048'
         ]);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+
         try {
             $import = new SiswaImport();
             Excel::import($import, $this->file->getRealPath());
@@ -57,37 +41,31 @@ class ImportSiswa extends Component
             // Simpan ke session supaya bisa diakses di halaman blade
             session()->flash('importSummary', $this->importSummary);
 
+            // Pastikan data sukses bertambah, kalau tidak ada berarti gagal
+            if ($this->importSummary['sukses'] > 0 || $this->importSummary['gagal'] > 0) {
+                $this->dispatch('showMessage', [
+                    'type' => 'success',
+                    'message' => "Total: {$this->importSummary['total']} baris, Sukses: {$this->importSummary['sukses']} baris, Gagal: {$this->importSummary['gagal']} baris"
+                ]);
+            } else {
+                throw new \Exception("Tidak ada data yang diproses. Periksa format file.");
+            }
+
             // Tampilkan pesan notifikasi pada flash
-            session()->flash('message', "Total: {$this->importSummary['totalBaris']} baris, Sukses: {$this->importSummary['sukses']} baris, Gagal: {$this->importSummary['gagal']} baris");
+            // session()->flash('message', "Total: {$this->importSummary['totalBaris']} baris, Sukses: {$this->importSummary['sukses']} baris, Gagal: {$this->importSummary['gagal']} baris");
 
             // **Tambahkan reset file setelah sukses**
             $this->reset('file');
         } catch (\Exception $e) {
-            session()->flash('error', 'Terjadi kesalahan saat mengimport file.');
-            Log::error('Gagal import data siswa : ' . $e->getMessage());
+            $this->dispatch('showMessage', [
+                'type' => 'error',
+                'message' => 'Terjadi kesalahan saat mengimport file: ' . $e->getMessage()
+            ]);
+            Log::error('Gagal import data siswa: ' . $e->getMessage());
         }
     }
 
 
-=======
-=======
->>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
-        $import = new SiswaImport();
-        Excel::import($import, $this->file->getRealPath());
-
-        $this->importSummary = [
-            'total' => $import->totalRows,
-            'berhasil' => $import->importedRows,
-            'gagal' => $import->failedRows,
-        ];
-
-        session()->flash('message', "Total: {$import->totalRows}, Berhasil: {$import->importedRows}, Gagal: {$import->failedRows}");
-    }
-
-<<<<<<< HEAD
->>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
-=======
->>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
     public function export_excel()
     {
         // return response()->streamDownload(function () {

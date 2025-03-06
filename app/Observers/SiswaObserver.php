@@ -56,7 +56,6 @@ class SiswaObserver
                 'name'     => $siswa->nama,
                 'username' => $siswa->nisn, // Update username jika NISN berubah
                 'email' => $siswa->nisn . '@sekolah.sch.id',
-                'password' => bcrypt($siswa->tanggal_lahir),
             ]);
         }
     }
