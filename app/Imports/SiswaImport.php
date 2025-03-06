@@ -9,6 +9,11 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 use Illuminate\Support\Collection;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+
+// class SiswaImport implements ToModel, WithHeadingRow, WithEvents
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
 =======
 
 // class SiswaImport implements ToModel, WithHeadingRow, WithEvents
@@ -22,6 +27,7 @@ class SiswaImport implements ToCollection
 
     public function collection(Collection $rows)
     {
+<<<<<<< HEAD
 <<<<<<< HEAD
         // Hapus header jika ada
         $rows->shift();
@@ -77,6 +83,8 @@ class SiswaImport implements ToCollection
                 // Simpan log error
                 Log::error("Gagal import data siswa di baris ke-" . ($index + 1) . " : " . $e->getMessage());
 =======
+=======
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
         // Menghapus header
         $rows->shift();
 
@@ -122,6 +130,9 @@ class SiswaImport implements ToCollection
                 Log::error('Gagal import data siswa : ' . $e->getMessage());
                 $this->gagal++;
                 $this->gagalData[] = $row;
+<<<<<<< HEAD
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
+=======
 >>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
             }
         }
@@ -131,15 +142,21 @@ class SiswaImport implements ToCollection
     {
         return [
 <<<<<<< HEAD
+<<<<<<< HEAD
             'total'      => $this->totalBaris,
             'sukses'     => $this->sukses,
             'gagal'      => $this->gagal,
             'gagalData'  => $this->gagalData,
 =======
+=======
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
             'total' => $this->totalBaris,
             'sukses' => $this->sukses,
             'gagal' => $this->gagal,
             'gagalData' => $this->gagalData
+<<<<<<< HEAD
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
+=======
 >>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
         ];
     }

@@ -8,7 +8,11 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\SiswaImport;
 use App\Exports\SiswaExport;
 <<<<<<< HEAD
+<<<<<<< HEAD
 use Illuminate\Support\Facades\Log;
+=======
+use Illuminate\Support\Facades\Storage;
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
 =======
 use Illuminate\Support\Facades\Storage;
 >>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
@@ -19,7 +23,11 @@ class ImportSiswa extends Component
 
     public $file;
 <<<<<<< HEAD
+<<<<<<< HEAD
     public $importSummary;
+=======
+    public $importSummary = [];
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
 =======
     public $importSummary = [];
 >>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
@@ -35,6 +43,7 @@ class ImportSiswa extends Component
             'file' => 'required|mimes:xlsx,xls,csv|max:2048'
         ]);
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         try {
             $import = new SiswaImport();
@@ -61,6 +70,8 @@ class ImportSiswa extends Component
 
 
 =======
+=======
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
         $import = new SiswaImport();
         Excel::import($import, $this->file->getRealPath());
 
@@ -73,6 +84,9 @@ class ImportSiswa extends Component
         session()->flash('message', "Total: {$import->totalRows}, Berhasil: {$import->importedRows}, Gagal: {$import->failedRows}");
     }
 
+<<<<<<< HEAD
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
+=======
 >>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
     public function export_excel()
     {

@@ -20,6 +20,9 @@ Route::group(['middleware' => 'auth'], function () {
 =======
     Route::get('import_siswa', ImportSiswa::class)->name('import_siswa');
     Route::post('import_siswa', ImportSiswa::class)->name('import_siswa');
+<<<<<<< HEAD
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
+=======
 >>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
 });
 
