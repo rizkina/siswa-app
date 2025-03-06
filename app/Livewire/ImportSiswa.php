@@ -7,14 +7,22 @@ use Livewire\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\SiswaImport;
 use App\Exports\SiswaExport;
+<<<<<<< HEAD
 use Illuminate\Support\Facades\Log;
+=======
+use Illuminate\Support\Facades\Storage;
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
 
 class ImportSiswa extends Component
 {
     use WithFileUploads;
 
     public $file;
+<<<<<<< HEAD
     public $importSummary;
+=======
+    public $importSummary = [];
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
 
     public function render()
     {
@@ -27,6 +35,7 @@ class ImportSiswa extends Component
             'file' => 'required|mimes:xlsx,xls,csv|max:2048'
         ]);
 
+<<<<<<< HEAD
         try {
             $import = new SiswaImport();
             Excel::import($import, $this->file->getRealPath());
@@ -51,6 +60,20 @@ class ImportSiswa extends Component
     }
 
 
+=======
+        $import = new SiswaImport();
+        Excel::import($import, $this->file->getRealPath());
+
+        $this->importSummary = [
+            'total' => $import->totalRows,
+            'berhasil' => $import->importedRows,
+            'gagal' => $import->failedRows,
+        ];
+
+        session()->flash('message', "Total: {$import->totalRows}, Berhasil: {$import->importedRows}, Gagal: {$import->failedRows}");
+    }
+
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
     public function export_excel()
     {
         // return response()->streamDownload(function () {

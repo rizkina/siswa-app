@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Illuminate\Support\Collection;
 
+<<<<<<< HEAD
+=======
+
+// class SiswaImport implements ToModel, WithHeadingRow, WithEvents
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
 class SiswaImport implements ToCollection
 {
     public $sukses = 0;
@@ -17,6 +22,7 @@ class SiswaImport implements ToCollection
 
     public function collection(Collection $rows)
     {
+<<<<<<< HEAD
         // Hapus header jika ada
         $rows->shift();
 
@@ -70,6 +76,53 @@ class SiswaImport implements ToCollection
 
                 // Simpan log error
                 Log::error("Gagal import data siswa di baris ke-" . ($index + 1) . " : " . $e->getMessage());
+=======
+        // Menghapus header
+        $rows->shift();
+
+        // Hitung total baris
+        $this->totalBaris = $rows->count();
+
+        foreach ($rows as $row) {
+            try {
+                // pastikan data tidak kosong
+                if (!isset($row[0]) || !isset($row[1]) || !isset($row[2]) || !isset($row[3])) {
+                    $this->gagal++;
+                    $this->gagalData[] = $row;
+                    continue;
+                }
+
+                // Cari ID Agama jika perlu
+                $agama = Agama::where('id_agama', $row[7])->first();
+                $agamaId = $agama ? $agama->id_agama : null;
+
+                // Cek apakah data sudah ada berdasarkan NISN
+                $existingSiswa = Siswa::where('nisn', $row[0])->first();
+
+                if ($existingSiswa) {
+                    // Jika sudah ada, skip atau update jika perlu
+                    $this->gagal++;
+                    continue;
+                }
+                // Simpan data
+                Siswa::create([
+                    'nisn' => $row[0] ?? null,
+                    'nipd' => $row[1] ?? null,
+                    'nik' => $row[2] ?? null,
+                    'nama' => $row[3] ?? null,
+                    'jns_kelamin' => $row[4] ?? null,
+                    'tempat_lahir' => $row[5] ?? null,
+                    'tanggal_lahir' => $row[6] ?? null,
+                    'agama_id' => $agamaId,
+                    'alamat' => $row[8] ?? null,
+                ]);
+
+                $this->sukses++;
+            } catch (\Exception $e) {
+                Log::error('Gagal import data siswa : ' . $e->getMessage());
+                $this->gagal++;
+                $this->gagalData[] = $row;
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
             }
         }
     }
@@ -77,10 +130,17 @@ class SiswaImport implements ToCollection
     public function getHasilImport()
     {
         return [
+<<<<<<< HEAD
             'total'      => $this->totalBaris,
             'sukses'     => $this->sukses,
             'gagal'      => $this->gagal,
             'gagalData'  => $this->gagalData,
+=======
+            'total' => $this->totalBaris,
+            'sukses' => $this->sukses,
+            'gagal' => $this->gagal,
+            'gagalData' => $this->gagalData
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
         ];
     }
 }

@@ -21,7 +21,11 @@
                             </div>
                         @endif
 
+<<<<<<< HEAD
                         <form wire:submit="import_excel" enctype="multipart/form-data">
+=======
+                        <form action="{{ route('import_siswa') }}" method="POST" enctype="multipart/form-data">
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
                             @csrf
 
                             <!-- Drag & Drop Area -->
@@ -30,14 +34,19 @@
                                 <p class="text-gray-700">Seret & Letakkan file di sini atau</p>
                                 <label for="file"
                                     class="text-blue-600 font-semibold cursor-pointer underline">Browse</label>
+<<<<<<< HEAD
                                 <input type="file" wire:model="file" id="file" class="hidden"
                                     wire:change="$refresh">
+=======
+                                <input type="file" id="file" name="file" class="hidden">
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
                             </div>
 
                             <!-- Menampilkan Nama File -->
                             <p id="file-name" class="mt-2 text-gray-600 text-sm text-center"></p>
 
                             <button type="submit"
+<<<<<<< HEAD
                                 class="w-full bg-blue-400 hover:bg-blue-600 text-white font-semibold py-3 rounded-lg shadow-md transition duration-300 flex items-center justify-center gap-2"
                                 wire:loading.attr="disabled">
                                 <span class="w-5 h-5">@svg('heroicon-c-document-arrow-up')</span>
@@ -51,6 +60,12 @@
                             @error('file')
                                 <p class="text-red-600 text-sm mt-2">{{ $message }}</p>
                             @enderror
+=======
+                                class="w-full bg-blue-400 hover:bg-blue-600 text-white font-semibold py-3 rounded-lg shadow-md transition duration-300 flex items-center justify-center gap-2">
+                                <span class="w-5 h-5">@svg('heroicon-c-document-arrow-up')</span>
+                                Import Data
+                            </button>
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
                         </form>
                     </div>
                 </div>
@@ -75,6 +90,7 @@
             </div>
 
             <!-- Hasil Import -->
+<<<<<<< HEAD
             @if (session('importSummary'))
                 @php $summary = session('importSummary'); @endphp
                 <div class="mt-6 p-4 bg-gray-100 border rounded-lg">
@@ -86,6 +102,14 @@
                         <button success
                             class="mt-4 inline-block bg-green-500 text-white px-4 py-2 rounded-lg shadow hover:bg-green-600 transition">Kembali</button>
                     </a>
+=======
+            @if (session('import_result'))
+                <div class="mt-6 p-4 bg-gray-100 border rounded-lg">
+                    <h3 class="text-lg font-semibold mb-2">Hasil Import</h3>
+                    <p class="text-gray-700">Total Baris: <strong>{{ session('import_result')['total'] }}</strong></p>
+                    <p class="text-green-700">Berhasil: <strong>{{ session('import_result')['sukses'] }}</strong></p>
+                    <p class="text-red-700">Gagal: <strong>{{ session('import_result')['gagal'] }}</strong></p>
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
                 </div>
             @endif
 
@@ -121,6 +145,7 @@
             @endif
         </div>
     </div>
+<<<<<<< HEAD
     {{-- <script>
         document.addEventListener('DOMContentLoaded', function() {
             let dropArea = document.getElementById('drop-area');
@@ -155,4 +180,6 @@
         });
     </script> --}}
 
+=======
+>>>>>>> f1a31d58d9967a29ceba2fce99bfd0feb9d0cfb0
 </div>
