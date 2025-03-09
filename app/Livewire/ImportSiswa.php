@@ -8,6 +8,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\SiswaImport;
 use App\Exports\SiswaExport;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\View;
 
 class ImportSiswa extends Component
 {

@@ -3,7 +3,12 @@
 namespace App\Imports;
 
 use App\Models\Siswa;
+use App\Models\Ibu;
+use App\Models\Ayah;
 use App\Models\Agama;
+use App\Models\Pendidikan;
+use App\Models\Pekerjaan;
+use App\Models\Penghasilan;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Illuminate\Support\Collection;
@@ -63,6 +68,55 @@ class SiswaImport implements ToCollection
                     'tanggal_lahir' => $row[6] ?? null,
                     'agama_id'      => $agamaId,
                     'alamat'        => $row[8] ?? null,
+                ]);
+
+                $pendidikanIb = null;
+                $pendidikanAy = null;
+                if (!empty($row[12]) || !empty($row[18])) {
+                    $pendidikanIbu = Pendidikan::find($row[12]);
+                    $pendidikanIb = $pendidikanIbu ? $pendidikanIbu->id_pendidikan : null;
+                    $pendidikanAyah = Pendidikan::find($row[18]);
+                    $pendidikanAy = $pendidikanAyah ? $pendidikanAyah->id_pendidikan : null;
+                }
+
+                $pekerjaanIb = null;
+                $pekerjaanAy = null;
+                if (!empty($row[13]) || !empty($row[19])) {
+                    $pekerjaanIbu = Pekerjaan::find($row[13]);
+                    $pekerjaanIb = $pekerjaanIbu ? $pekerjaanIbu->id_pekerjaan : null;
+                    $pekerjaanAyah = Pekerjaan::find($row[19]);
+                    $pekerjaanAy = $pekerjaanAyah ? $pekerjaanAyah->id_pekerjaan : null;
+                }
+
+                $penghasilanIb = null;
+                $penghasilanAy = null;
+                if (!empty($row[14]) || !empty($row[20])) {
+                    $penghasilanIbu = Penghasilan::find($row[14]);
+                    $penghasilanIb = $penghasilanIbu ? $penghasilanIbu->id_penghasilan : null;
+                    $penghasilanAyah = Penghasilan::find($row[20]);
+                    $penghasilanAy = $penghasilanAyah ? $penghasilanAyah->id_penghasilan : null;
+                }
+
+                // Simpan data ibu
+                Ibu::create([
+                    'nisn'          => $row[0] ?? null,
+                    'nama'          => $row[9] ?? null,
+                    'nik'           => $row[10] ?? null,
+                    'tahun_lahir'   => $row[11] ?? null,
+                    'pendidikan_id' => $pendidikanIb,
+                    'pekerjaan_id'  => $pekerjaanIb,
+                    'penghasilan_id' => $penghasilanIb,
+                ]);
+
+                // Simpan data ayah
+                Ayah::create([
+                    'nisn'          => $row[0] ?? null,
+                    'nama'          => $row[15] ?? null,
+                    'nik'           => $row[16] ?? null,
+                    'tahun_lahir'   => $row[17] ?? null,
+                    'pendidikan_id' => $pendidikanAy,
+                    'pekerjaan_id'  => $pekerjaanAy,
+                    'penghasilan_id' => $penghasilanAy,
                 ]);
 
                 // Jika berhasil, tambah counter sukses

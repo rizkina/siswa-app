@@ -14,6 +14,11 @@ class ListSiswas extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('eksport')
+                ->color('warning')
+                ->icon('heroicon-s-document-arrow-down')
+                ->url('')
+                ->label('Eksport'),
             Action::make('import')
                 ->color('success')
                 ->icon('heroicon-s-cloud-arrow-up')

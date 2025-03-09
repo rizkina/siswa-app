@@ -4,6 +4,7 @@ use App\Http\Controllers\SiswaImportController;
 use App\Imports\SiswaImport;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\ImportSiswa;
+use Illuminate\Support\Facades\View;
 
 Route::get('/', function () {
     return view('welcome');

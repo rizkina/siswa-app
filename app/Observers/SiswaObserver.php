@@ -14,25 +14,25 @@ class SiswaObserver
      */
     public function created(Siswa $siswa): void
     {
-        Ibu::create([
-            'nisn' => $siswa->nisn,
-            'nama' => null,
-            'nik' => null,
-            'tahun_lahir' => null,
-            'pendidikan_id' => null,
-            'pekerjaan_id' => null,
-            'penghasilan_id' => null,
-        ]);
+        // Ibu::create([
+        //     'nisn' => $siswa->nisn,
+        //     'nama' => null,
+        //     'nik' => null,
+        //     'tahun_lahir' => null,
+        //     'pendidikan_id' => null,
+        //     'pekerjaan_id' => null,
+        //     'penghasilan_id' => null,
+        // ]);
 
-        Ayah::create([
-            'nisn' => $siswa->nisn,
-            'nama' => null,
-            'nik' => null,
-            'tahun_lahir' => null,
-            'pendidikan_id' => null,
-            'pekerjaan_id' => null,
-            'penghasilan_id' => null,
-        ]);
+        // Ayah::create([
+        //     'nisn' => $siswa->nisn,
+        //     'nama' => null,
+        //     'nik' => null,
+        //     'tahun_lahir' => null,
+        //     'pendidikan_id' => null,
+        //     'pekerjaan_id' => null,
+        //     'penghasilan_id' => null,
+        // ]);
 
         $user = User::create([
             'username' => $siswa->nisn, // Menggunakan NISN sebagai username
@@ -58,6 +58,18 @@ class SiswaObserver
                 'email' => $siswa->nisn . '@sekolah.sch.id',
             ]);
         }
+        $ibu = Ibu::where('nisn', $siswa->getOriginal('nisn'))->first();
+        if ($ibu) {
+            $ibu->update([
+                'nisn' => $siswa->nisn,
+            ]);
+        }
+        $ayah = Ayah::where('nisn', $siswa->getOriginal('nisn'))->first();
+        if ($ayah) {
+            $ayah->update([
+                'nisn' => $siswa->nisn,
+            ]);
+        }
     }
 
     /**
@@ -66,6 +78,8 @@ class SiswaObserver
     public function deleted(Siswa $siswa)
     {
         User::where('username', $siswa->nisn)->delete();
+        Ibu::where('nisn', $siswa->nisn)->delete();
+        Ayah::where('nisn', $siswa->nisn)->delete();
     }
 
     /**
