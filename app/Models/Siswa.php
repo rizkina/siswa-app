@@ -48,4 +48,11 @@ class Siswa extends Model
     {
         return $this->files()->where('kategori', $kategori)->first();
     }
+
+    public function kelas()
+    {
+        return $this->belongsToMany(Kelas::class, 'siswa_kelas', 'id_siswa', 'id_kelas')
+            ->withPivot('id_tahun_ajaran')
+            ->withTimestamps();
+    }
 }
