@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('kode_jurusan', 10)->unique();
             $table->string('nama_jurusan', 50);
+            $table->string('kurikulum');
             $table->string('keterangan', 100)->nullable();
             $table->softDeletes();
             $table->timestamps();

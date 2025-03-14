@@ -93,5 +93,13 @@ class RefSeeder extends Seeder
             'email' => 'su@mail.com',
             'password' => bcrypt('Test_123'),
         ]);
+
+
+        // Isi tabel tingkat
+        // DB::table('tingkats')->insert([
+        //     ['tingkat' => 10, 'keterangan' => ''],
+        //     ['tingkat' => 11, 'keterangan' => ''],
+        //     ['tingkat' => 12, 'keterangan' => ''],
+        // ]);
     }
 }

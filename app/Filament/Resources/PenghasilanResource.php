@@ -25,6 +25,8 @@ class PenghasilanResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-m-currency-dollar';
 
+    protected static ?int $navigationSort = 4;
+
     public static function form(Form $form): Form
     {
         return $form

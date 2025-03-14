@@ -10,7 +10,7 @@ class TahunPelajaran extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'tahun_pelajaran';
+    protected $table = 'tahun_pelajarans';
 
     protected $fillable = [
         'tahun_pelajaran',

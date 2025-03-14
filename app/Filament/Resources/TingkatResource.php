@@ -25,11 +25,26 @@ class TingkatResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-c-numbered-list';
 
+    protected static ?int $navigationSort = 5;
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                //
+                Forms\Components\Group::make()
+                    ->schema([
+                        Forms\Components\Section::make()
+                            ->schema([
+                                Forms\Components\TextInput::make('tingkat')
+                                    ->label('Tingkat')
+                                    ->required()
+                                    ->unique()
+                                    ->placeholder('Masukkan Tingkat'),
+                                Forms\Components\TextInput::make('keterangan')
+                                    ->label('Keterangan')
+                                    ->placeholder('Masukkan Keterangan'),
+                            ]),
+                    ]),
             ]);
     }
 
@@ -37,7 +52,14 @@ class TingkatResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('tingkat')
+                    ->label('Tingkat')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('keterangan')
+                    ->label('Keterangan')
+                    ->sortable()
+                    ->searchable(),
             ])
             ->filters([
                 //

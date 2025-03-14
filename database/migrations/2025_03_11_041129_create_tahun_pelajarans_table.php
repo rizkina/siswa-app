@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('tahun_pelajarans', function (Blueprint $table) {
             $table->id();
-            $table->string('tahun_pelajaran')->unique();
-            $table->year('tahun');
-            $table->enum('semester', ['1', '2'])->comment('1: Ganjil, 2: Genap');
+            $table->string('tahun_pelajaran')->default('')->unique()->comment('Contoh:20251');
+            $table->year('tahun')->default('2025')->comment('Contoh:2025');
+            $table->enum('semester', ['Ganjil', 'Genap']);
             $table->boolean('aktif')->default(false);
             $table->date('tanggal_mulai')->nullable();
             $table->date('tanggal_selesai')->nullable();
