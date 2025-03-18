@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('id_tingkat')->constrained('tingkats')->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('id_jurusan')->constrained('jurusans')->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('id_tahun_pelajaran')->constrained('tahun_pelajarans')->onUpdate('cascade')->onDelete('cascade');
+            $table->unique(['kelas', 'id_tingkat', 'id_jurusan', 'id_tahun_pelajaran']);
             $table->softDeletes();
             $table->timestamps();
         });

@@ -19,7 +19,7 @@ class TahunPelajaranResource extends Resource
 {
     protected static ?string $model = TahunPelajaran::class;
 
-    protected static ?string $navigationGroup = 'Data Referensi';
+    protected static ?string $navigationGroup = 'Data Periodik';
 
     protected static ?string $modelLabel = 'Tahun Pelajaran';
 
@@ -27,7 +27,7 @@ class TahunPelajaranResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-c-clock';
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
@@ -89,20 +89,27 @@ class TahunPelajaranResource extends Resource
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
                         'Ganjil' => 'primary',
-                        'Genap' => 'success',
+                        'Genap' => 'warning',
                         default => 'danger',
                     }),
-                // Tables\Columns\ToggleColumn::make('aktif')->label('Status Aktif'),
-                Tables\Columns\IconColumn::make('aktif')
+                Tables\Columns\ToggleColumn::make('aktif')
                     ->label('Status Aktif')
-                    ->icon(fn(string $state): string => match ($state) {
-                        '0' => 'heroicon-s-x-circle',
-                        '1' => 'heroicon-s-check-circle',
-                    })
-                    ->color(fn(string $state): string => match ($state) {
-                        '0' => 'danger',
-                        '1' => 'success',
-                    }),
+                    ->afterStateUpdated(fn(bool $state, $record) => $record->save())
+                    ->inline(false)
+                    ->onIcon('heroicon-o-check-circle')
+                    ->offIcon('heroicon-o-x-circle')
+                    ->onColor('success')
+                    ->offColor('danger'),
+                // Tables\Columns\IconColumn::make('aktif')
+                //     ->label('Status Aktif')
+                //     ->icon(fn(string $state): string => match ($state) {
+                //         '0' => 'heroicon-s-x-circle',
+                //         '1' => 'heroicon-s-check-circle',
+                //     })
+                //     ->color(fn(string $state): string => match ($state) {
+                //         '0' => 'danger',
+                //         '1' => 'success',
+                //     }),
 
                 Tables\Columns\TextColumn::make('tanggal_mulai')->label('Tanggal Mulai'),
                 Tables\Columns\TextColumn::make('tanggal_selesai')->label('Tanggal Selesai'),

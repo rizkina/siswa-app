@@ -22,6 +22,23 @@ class TahunPelajaran extends Model
         'keterangan'
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::updating(function ($model) {
+            if ($model->isDirty('aktif') && $model->aktif == 1) {
+                // Set all other records to inactive
+                self::where('id', '!=', $model->id)->update(['aktif' => 0]);
+            }
+        });
+    }
+
+    public static function getTahunAktif()
+    {
+        return self::where('aktif', 1)->first();
+    }
+
     public function kelas()
     {
         return $this->hasMany(Kelas::class, 'id_tahun_pelajaran');

@@ -17,7 +17,7 @@ class TingkatResource extends Resource
 {
     protected static ?string $model = Tingkat::class;
 
-    protected static ?string $navigationGroup = 'Data Referensi';
+    protected static ?string $navigationGroup = 'Data Periodik';
 
     protected static ?string $modelLabel = 'Tingkat';
 
@@ -25,7 +25,7 @@ class TingkatResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-c-numbered-list';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {

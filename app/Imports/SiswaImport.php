@@ -9,6 +9,8 @@ use App\Models\Agama;
 use App\Models\Pendidikan;
 use App\Models\Pekerjaan;
 use App\Models\Penghasilan;
+use App\Models\Kelas;
+use App\Models\TahunPelajaran;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Illuminate\Support\Collection;
@@ -20,6 +22,12 @@ class SiswaImport implements ToCollection
     public $gagal = 0;
     public $totalBaris = 0;
     public $gagalData = [];
+    protected $tahunPelajaranAktif;
+
+    public function __construct()
+    {
+        $this->tahunPelajaranAktif = TahunPelajaran::getTahunAktif();
+    }
 
     public function collection(Collection $rows)
     {
@@ -42,6 +50,13 @@ class SiswaImport implements ToCollection
                 if (!empty($row[7])) {
                     $agama = Agama::find($row[7]);
                     $agamaId = $agama ? $agama->id_agama : null;
+                }
+
+                // Cari atau buat kelas berdasarkan nama kelas yang diinputkan
+                $kelasId = null;
+                if (!empty($row[21])) {
+                    $kelas = Kelas::firstOrCreate(['kelas' => $row[21]]);
+                    $kelasId = $kelas->id;
                 }
 
                 // Cek apakah data sudah ada berdasarkan NISN
@@ -68,6 +83,8 @@ class SiswaImport implements ToCollection
                     'tanggal_lahir' => $row[6] ?? null,
                     'agama_id'      => $agamaId,
                     'alamat'        => $row[8] ?? null,
+                    'kelas_id'      => $kelasId,
+                    'tahun_pelajaran_id' => $this->tahunPelajaranAktif->id,
                 ]);
 
                 $pendidikanIb = null;

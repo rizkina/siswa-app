@@ -3,12 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 use App\Models\Agama;
 
 class Siswa extends Model
 {
+    use HasFactory, SoftDeletes;
+
     protected $table = 'siswas';
 
     protected $fillable = [
@@ -51,8 +55,9 @@ class Siswa extends Model
 
     public function kelas()
     {
-        return $this->belongsToMany(Kelas::class, 'siswa_kelas', 'id_siswa', 'id_kelas')
-            ->withPivot('id_tahun_pelajaran')
-            ->withTimestamps();
+        // return $this->belongsToMany(Kelas::class, 'siswa_kelas', 'id_siswa', 'id_kelas')
+        //     ->withPivot('id_tahun_pelajaran')
+        //     ->withTimestamps();
+        return $this->belongsTo(Kelas::class, 'id_kelas');
     }
 }
