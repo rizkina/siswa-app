@@ -26,7 +26,7 @@ return new class extends Migration
             $table->text('foto')->nullable();
 
             // Menambhakan id_kelas untuk relasi One- to-Many
-            $table->foreignId('id_kelas')->constrained('kelas')->cascadeOnUpdate()->nullOnDelete();
+            $table->foreignId('id_kelas')->nullable()->constrained('kelas')->cascadeOnUpdate()->nullOnDelete();
             $table->softDeletes();
             $table->timestamps();
         });

@@ -32,7 +32,49 @@ class KelasResource extends Resource
     {
         return $form
             ->schema([
-                //
+                Forms\Components\Group::make()
+                    ->schema([
+                        Forms\Components\Group::make()
+                            ->label('Data Kelas')
+                            ->schema([
+                                Forms\Components\Select::make('id_tahun_pelajaran')
+                                    ->label('Tahun Pelajaran')
+                                    // ->relationship('tahun_pelajaran', 'tahun_pelajaran', function ($query) {
+                                    //     // return $query->where('aktif', 1); // Untuk menampilkan hanya tahun pelajran yang aktif saja
+                                    //     return $query->orderByDesc('aktif')->orderBy('tahun_pelajaran', 'desc');
+                                    // })
+                                    ->options(function () {
+                                        return \App\Models\TahunPelajaran::orderByDesc('aktif')
+                                            ->orderBy('tahun_pelajaran', 'desc')
+                                            ->get()
+                                            ->mapWithKeys(function ($tp) {
+                                                $label = $tp->tahun_pelajaran;
+                                                if ($tp->aktif == 1) {
+                                                    $label .= ' (Aktif)';
+                                                }
+                                                return [$tp->id => $label];
+                                            })
+                                            ->toArray();
+                                    })
+                                    ->preload()
+                                    ->default(fn() => \App\Models\TahunPelajaran::where('aktif', 1)->first()->id)
+                                    ->required(),
+                                Forms\Components\Select::make('id_tingkat')
+                                    ->label('Tingkat')
+                                    ->relationship('tingkat', 'tingkat')
+                                    ->preload()
+                                    ->required(),
+                                Forms\Components\Select::make('id_jurusan')
+                                    ->label('Jurusan')
+                                    ->relationship('jurusan', 'nama_jurusan')
+                                    ->preload()
+                                    ->required(),
+                                Forms\Components\TextInput::make('kelas')
+                                    ->label('Kelas')
+                                    ->required()
+                                    ->placeholder('Nama Kelas'),
+                            ]),
+                    ])
             ]);
     }
 

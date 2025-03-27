@@ -11,6 +11,7 @@ use App\Models\Pekerjaan;
 use App\Models\Penghasilan;
 use App\Models\Kelas;
 use App\Models\TahunPelajaran;
+use App\Models\Tingkat;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Illuminate\Support\Collection;
@@ -50,6 +51,27 @@ class SiswaImport implements ToCollection
                 if (!empty($row[7])) {
                     $agama = Agama::find($row[7]);
                     $agamaId = $agama ? $agama->id_agama : null;
+                }
+
+                // Cari ID Tingkat
+                $tingkatId = null;
+                if (!empty($row[22])) {
+                    $tingkat = Tingkat::where('id', $row[22])->first();
+                    $tingkatId = $tingkat ? $tingkat->id : null;
+                }
+
+                // Cari ID Jurusan
+                $jurusanId = null;
+                if (!empty($row[23])) {
+                    $jurusan = Kelas::where('id', $row[23])->first();
+                    $jurusanId = $jurusan ? $jurusan->id : null;
+                }
+
+                // Cari ID Tahun Pelajaran
+                $tahunPelajaranId = null;
+                if (!empty($row[24])) {
+                    $tahunPelajaran = TahunPelajaran::where('id', $row[24])->first();
+                    $tahunPelajaranId = $tahunPelajaran ? $tahunPelajaran->id : null;
                 }
 
                 // Cari atau buat kelas berdasarkan nama kelas yang diinputkan
