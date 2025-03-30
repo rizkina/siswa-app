@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
@@ -114,6 +115,11 @@ class SiswaResource extends Resource
                 if ($is_Siswa) {
                     $query->where('nisn', Auth::user()->username);
                 }
+
+                $query->with([
+                    'agama',
+                    'kelas',
+                ]);
             })
             ->columns([
                 Tables\Columns\TextColumn::make('nama')
@@ -154,10 +160,19 @@ class SiswaResource extends Resource
                 Tables\Columns\TextColumn::make('alamat')
                     ->label('Alamat')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('kelas.kelas')
+                    ->label('Kelas')
+                    ->sortable()
+                    ->searchable(),
             ])
             ->filters([
-                //
-            ])
+                Tables\Filters\SelectFilter::make('kelas')
+                    ->label('Kelas')
+                    ->relationship('kelas', 'kelas') // Hubungkan ke relasi 'kelas'
+                    ->preload() // Load data langsung
+                    ->searchable(), // Memungkinkan pencarian dalam daftar kelas
+             ])
+
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])

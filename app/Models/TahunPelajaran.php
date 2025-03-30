@@ -36,7 +36,7 @@ class TahunPelajaran extends Model
 
     public static function getTahunAktif()
     {
-        return self::where('aktif', 1)->first();
+        return self::where('aktif', true)->first();
     }
 
     public function kelas()

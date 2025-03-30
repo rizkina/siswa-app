@@ -48,21 +48,22 @@ class TahunPelajaranResource extends Resource
                             ->label('Semester')
                             ->required()
                             ->options([
-                                '1' => 'Ganjil',
-                                '2' => 'Genap',
+                                'Ganjil' => 'Ganjil',
+                                'Genap' => 'Genap',
                             ]),
                         Forms\Components\ToggleButtons::make('aktif')
                             ->label('Status Aktif')
-                            // ->options([
-                            //     '0' => 'Tidak Aktif',
-                            //     '1' => 'Aktif',
-                            // ])
+                            ->onIcon('heroicon-o-check')
+                            ->offIcon('heroicon-o-x')
+                            ->onColor('success')
+                            ->offColor('danger')
+                            // ->offIcon('heroicon-m-user')
                             // ->colors([
                             //     'danger' => 'Tidak Aktif',
                             //     'success' => 'Aktif',
                             // ])
                             ->boolean()
-                            ->default('0')
+                            ->default('false')
                             ->inline()
                             ->required(),
                         Forms\Components\Datepicker::make('tanggal_mulai')

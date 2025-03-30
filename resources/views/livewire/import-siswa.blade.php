@@ -21,8 +21,9 @@
                             </div>
                         @endif
 
-                        <form wire:submit.prevent="import_excel" enctype="multipart/form-data" @csrf <!-- Drag & Drop
-                            Area -->
+                        <form wire:submit.prevent="import_excel" enctype="multipart/form-data">
+                            @csrf
+                            <!-- Drag & Drop Area -->
                             <div id="drop-area"
                                 class="w-full p-6 border-2 border-dashed border-gray-400 rounded-lg bg-white text-center cursor-pointer hover:border-blue-500 transition">
                                 <p class="text-gray-700">Seret & Letakkan file di sini atau</p>
@@ -41,7 +42,7 @@
                                 <span class="w-5 h-5">@svg('heroicon-c-document-arrow-up')</span>
                                 Import Data
                             </button>
-                            <!-- Debugging -->
+
                             @if ($file)
                                 <p>File terpilih: {{ $file->getClientOriginalName() }}</p>
                             @endif
@@ -58,10 +59,8 @@
                     <div class="bg-gray-100 p-6 rounded-lg border border-gray-300">
                         <h3 class="text-lg font-semibold mb-2">Keterangan & Template</h3>
                         <ul class="list-disc pl-5 text-gray-700">
-                            <li>Pastikan format file dalam bentuk <strong>.xlsx</strong> atau <strong>.xls</strong>.
-                            </li>
-                            <li>Kolom yang diperlukan: <strong>NISN, Nama, Kelas, NIK</strong>, dan lainnya sesuai
-                                kebutuhan.</li>
+                            <li>Pastikan format file dalam bentuk <strong>.xlsx</strong> atau <strong>.xls</strong>.</li>
+                            <li>Kolom yang diperlukan: <strong>NISN, Nama, Kelas, NIK</strong>, dan lainnya sesuai kebutuhan.</li>
                             <li>Hindari penggunaan karakter khusus pada kolom Nama.</li>
                         </ul>
                         <a href="{{ asset('templates/siswa_template.xlsx') }}"
@@ -71,7 +70,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Hasil Import -->
             @if (session()->has('importSummary'))
                 @php $summary = session('importSummary'); @endphp
@@ -93,7 +91,7 @@
                             <table class="min-w-full bg-white border border-gray-300">
                                 <thead>
                                     <tr class="bg-gray-200">
-                                        <th class="py-2 px-4 border">Baris</th>
+                                        <th class="py-2 px-4 border">Baris ke</th>
                                         <th class="py-2 px-4 border">NISN</th>
                                         <th class="py-2 px-4 border">Nama</th>
                                         <th class="py-2 px-4 border">Keterangan</th>
@@ -103,8 +101,8 @@
                                     @foreach ($summary['gagalData'] as $index => $siswa)
                                         <tr class="border">
                                             <td class="py-2 px-4 border">{{ $siswa['baris'] }}</td>
-                                            <td class="py-2 px-4 border">{{ $siswa['data'][0] }}</td>
-                                            <td class="py-2 px-4 border">{{ $siswa['data'][3] }}</td>
+                                            <td class="py-2 px-4 border">{{ $siswa['data']['nisn'] }}</td>
+                                            <td class="py-2 px-4 border">{{ $siswa['data']['nama'] }}</td>
                                             <td class="py-2 px-4 border">{{ $siswa['error'] }}</td>
                                         </tr>
                                     @endforeach
