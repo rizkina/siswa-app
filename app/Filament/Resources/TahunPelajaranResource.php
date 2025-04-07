@@ -53,10 +53,10 @@ class TahunPelajaranResource extends Resource
                             ]),
                         Forms\Components\ToggleButtons::make('aktif')
                             ->label('Status Aktif')
-                            ->onIcon('heroicon-o-check')
-                            ->offIcon('heroicon-o-x')
-                            ->onColor('success')
-                            ->offColor('danger')
+                            // ->onIcon('heroicon-o-check')
+                            // ->offIcon('heroicon-o-x')
+                            // ->onColor('success')
+                            // ->offColor('danger')
                             // ->offIcon('heroicon-m-user')
                             // ->colors([
                             //     'danger' => 'Tidak Aktif',

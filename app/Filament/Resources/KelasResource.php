@@ -82,7 +82,22 @@ class KelasResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('tahun_pelajaran.tahun_pelajaran')
+                    ->label('Tahun Pelajaran')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('tingkat.tingkat')
+                    ->label('Tingkat')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('jurusan.nama_jurusan')
+                    ->label('Jurusan')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('kelas')
+                    ->label('Kelas')
+                    ->sortable()
+                    ->searchable(),
             ])
             ->filters([
                 //
