@@ -85,7 +85,11 @@ class UserResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('roles')
+                    ->relationship('roles', 'name')
+                    ->preload() // Load data langsung
+                    ->searchable()
+                    ->label('Role'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
