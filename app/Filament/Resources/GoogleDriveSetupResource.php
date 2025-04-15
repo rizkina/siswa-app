@@ -7,59 +7,51 @@ use App\Filament\Resources\GoogleDriveSetupResource\RelationManagers;
 use App\Models\GoogleDriveSetup;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Forms\Components\ToggleButtons;
-use Filament\Tables\Columns\ToggleColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class GoogleDriveSetupResource extends Resource
 {
     protected static ?string $model = GoogleDriveSetup::class;
 
-    protected static ?string $navigationLabel = 'Google Drive Setup';
-
     protected static ?string $navigationGroup = 'Pengaturan';
+    protected static ?string $navigationLabel = 'Google Drive';
+    protected static ?string $label = 'Google Drive Setup';
 
-    protected static ?string $navigationIcon = 'heroicon-s-rectangle-stack';
+    protected static ?string $pluralLabel = 'Google Drive Setups';
+
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Group::make()
+                Forms\Components\Section::make()
                     ->schema([
-                        Forms\Components\Section::make()
-                            ->schema([
-                                Forms\Components\TextInput::make('client_id')
-                                    ->label('Client ID')
-                                    ->required()
-                                    ->placeholder('Masukkan Client ID'),
-                                Forms\Components\TextInput::make('client_secret')
-                                    ->label('Client Secret')
-                                    ->required()
-                                    ->placeholder('Masukkan Client Secret'),
-                                Forms\Components\TextInput::make('refresh_token')
-                                    ->label('Refresh Token')
-                                    ->required()
-                                    ->placeholder('Masukkan Refresh Token'),
-                                Forms\Components\TextInput::make('folder_id')
-                                    ->label('Folder ID')
-                                    ->nullable()
-                                    ->placeholder('Masukkan Folder ID'),
-                                Forms\Components\ToggleButtons::make('is_active')
-                                    ->label('Aktif')
-                                    ->inline()
-                                    ->boolean()
-                                    ->default('false')
-                                    ->helperText('Klik untuk mengaktifkan pengaturan Google Drive'),
-                            ]),
-                    ])
-                    ->columns([
-                        'sm' => 2,
-                    ]),
+                    Forms\Components\TextInput::make('client_id')
+                        ->required()
+                        ->maxLength(255),
+                    Forms\Components\TextInput::make('client_secret')
+                        ->required()
+                        ->maxLength(255),
+                    Forms\Components\TextInput::make('redirect_uri')
+                        ->maxLength(255),
+                    Forms\Components\TextInput::make('folder_id')
+                        ->maxLength(255),
+                    Forms\Components\ToggleButtons::make('is_active')
+                        ->label('Aktif')
+                        ->inline()
+                        ->boolean()
+                        ->grouped()
+                        ->default('false')
+                        ->helperText('Aktif/Non Aktifkan pengaturan Google Drive')
+                        ->required(),
+                ])
             ]);
     }
 
@@ -68,24 +60,23 @@ class GoogleDriveSetupResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('client_id')
-                    ->label('Client ID')
-                    ->searchable()
-                    ->sortable(),
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('client_secret')
-                    ->label('Client Secret')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('refresh_token')
-                    ->label('Refresh Token')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\ToggleColumn::make('is_aktif')
-                    ->label('Aktif')
-                    ->inline(false)
-                    ->onIcon('heroicon-o-check-circle')
-                    ->offIcon('heroicon-o-x-circle')
-                    ->onColor('success')
-                    ->offColor('danger'),
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('redirect_uri')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('folder_id')
+                    ->searchable(),
+                Tables\Columns\IconColumn::make('is_active')
+                    ->boolean(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
@@ -114,5 +105,10 @@ class GoogleDriveSetupResource extends Resource
             'create' => Pages\CreateGoogleDriveSetup::route('/create'),
             'edit' => Pages\EditGoogleDriveSetup::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return Auth::user()?->hasRole('super_admin');
     }
 }

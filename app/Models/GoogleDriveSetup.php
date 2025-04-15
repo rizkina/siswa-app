@@ -13,6 +13,7 @@ class GoogleDriveSetup extends Model
     protected $fillable = [
         'client_id',
         'client_secret',
+        'redirect_uri',
         'refresh_token',
         'folder_id',
         'is_active',
