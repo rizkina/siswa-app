@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('file_uploads', function (Blueprint $table) {
             $table->id();
+            $table->string('nisn', 10);
             $table->foreign('nisn')->references('nisn')->on('siswas')->cascadeOnDelete();
             $table->foreignId('file_kategori_id')->constrained('file_kategoris')->onDelete('cascade');
             $table->string('nama_file');
