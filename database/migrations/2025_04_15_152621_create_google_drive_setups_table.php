@@ -17,6 +17,9 @@ return new class extends Migration
             $table->string('client_secret');
             $table->string('redirect_uri')->nullable();
             $table->text('refresh_token')->nullable();
+            $table->text('access_token')->nullable();
+            $table->string('token_type')->nullable();
+            $table->integer('expires_in')->nullable();
             $table->string('folder_id')->nullable();
             $table->boolean('is_active')->default(false);
             $table->timestamps();

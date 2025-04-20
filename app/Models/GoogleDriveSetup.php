@@ -15,6 +15,9 @@ class GoogleDriveSetup extends Model
         'client_secret',
         'redirect_uri',
         'refresh_token',
+        'access_token',
+        'token_type',
+        'expires_in',
         'folder_id',
         'is_active',
     ];

@@ -44,7 +44,7 @@ class Siswa extends Model
 
     public function file()
     {
-        return $this->hasMany(File::class, 'nisn', 'nisn');
+        return $this->hasMany(FileUpload::class, 'nisn', 'nisn');
     }
 
     // Mendapatkan file berdasarkan kategori
