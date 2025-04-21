@@ -10,6 +10,7 @@ use Google\Client;
 use Google\Service\Drive;
 use Illuminate\Support\Facades\Auth;
 use App\Models\GoogleDriveSetup;
+use Filament\Notifications\Notification;
 
 
 class CreateFileKategori extends CreateRecord
@@ -51,14 +52,19 @@ class CreateFileKategori extends CreateRecord
 
         // Nama folder dari input form
         $folderName = $data['nama'];
-        $parentFolderId = $setup->folder_id;
+        // $parentFolderId = $setup->folder_id;
 
         // Metadata folder
         $fileMetadata = new Drive\DriveFile([
             'name' => $folderName,
             'mimeType' => 'application/vnd.google-apps.folder',
-            'parents' => ['$parentFolderId'] // opsional jika mau nested
+            // 'parents' => [$parentFolderId] // opsional jika mau nested
         ]);
+
+        // Jika folder induk tesedia, tambahkan sebagai parent
+        if (!empty($setup->folder_id)) {
+            $fileMetadata->setParents([$setup->folder_id]);
+        }
 
         // Buat folder
         $folder = $driveService->files->create($fileMetadata, [
@@ -69,6 +75,15 @@ class CreateFileKategori extends CreateRecord
         $data['folder_id'] = $folder->id;
 
         return $data;
+    }
+
+    protected function afterCreate(): void
+    {
+        Notification::make()
+            ->title('Folder berhasil dibuat')
+            ->body('Folder Google Drive telah dibuat dan data kategori disimpan.')
+            ->success()
+            ->send();
     }
 
 }
