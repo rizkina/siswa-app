@@ -43,6 +43,12 @@
                                 Import Data
                             </button>
 
+                            {{-- <button type="button"
+                                wire:click="$refresh"
+                                class="mt-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded">
+                                Refresh Komponen
+                            </button> --}}
+
                             @if ($file)
                                 <p>File terpilih: {{ $file->getClientOriginalName() }}</p>
                             @endif
@@ -68,6 +74,14 @@
                             📥 Download Template Excel
                         </a>
                     </div>
+                </div>
+                <div class="mt-6 p-4 bg-gray-100 border rounded-lg">
+                    <a href="admin/siswas">
+                        <button success
+                            class="mt-4 inline-block bg-green-500 text-white px-4 py-2 rounded-lg shadow hover:bg-green-600 transition">Kembali
+                            {{-- <span class="w-5 h-5">@svg('heroicon-s-backspace')</span> --}}
+                        </button>
+                    </a>
                 </div>
             </div>
             <!-- Hasil Import -->

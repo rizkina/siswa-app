@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToCollection;
+use App\Events\SiswaCreated;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
@@ -86,13 +87,13 @@ class SiswaImport implements ToCollection, WithHeadingRow
                     'tahun_lahiribu' => 'nullable|numeric|digits:4', // Tahun Lahir Ibu
                     'pendidikan_ibu' => 'nullable|string', // Pendidikan Ibu
                     'pekerjaan_ibu' => 'nullable|string', // Pekerjaan Ibu
-                    'penghasialan_ibu' => 'nullable|string', // Penghasilan Ibu
-                    'nama_iyah' => 'nullable|string', // Nama Ayah
-                    'nik_iyah' => 'nullable|numeric|digits:16', // NIK Ayah
+                    'penghasilan_ibu' => 'nullable|string', // Penghasilan Ibu
+                    'nama_ayah' => 'nullable|string', // Nama Ayah
+                    'nik_ayah' => 'nullable|numeric|digits:16', // NIK Ayah
                     'tahun_lahirayah' => 'nullable|numeric|digits:4', // Tahun Lahir Ayah
                     'pendidikan_ayah' => 'nullable|string', // Pendidikan Ayah
                     'pekerjaan_ayah' => 'nullable|string', // Pekerjaan Ayah
-                    'penghasialan_ayah' => 'nullable|string', // Penghasilan Ayah
+                    'penghasilan_ayah' => 'nullable|string', // Penghasilan Ayah
                     'tingkat' => 'nullable|string', // Tingkat
                     'jurusan' => 'nullable|string', // Jurusan
                     'kelas' => 'nullable|string', // Kelas

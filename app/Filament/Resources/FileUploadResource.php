@@ -30,10 +30,19 @@ class FileUploadResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-s-document';
 
+    // public static function query(Builder $query): Builder
+    // {
+    //     return $query->with('siswa');
+    // }
+    
     public static function form(Form $form): Form
     {
         $user = Auth::user();
         $isSiswa = $user->hasRole('Siswa');
+        $siswa = $isSiswa 
+            ? \App\Models\Siswa::where('nisn', $user->username)->first()
+            : null;
+
         $file_kategori = FileKategori::all();
 
         return $form
@@ -42,18 +51,28 @@ class FileUploadResource extends Resource
                     ->schema([
                         Forms\Components\Section::make()
                             ->schema([
-                                $isSiswa
-                                    ? Forms\Components\TextInput::make('nisn')
-                                        ->label('NISN')
-                                        ->default($user->nisn)
-                                        ->disabled()
-                                        ->dehydrated() // agar tetap tersimpan
-                                        ->required()
-                                    : Forms\Components\Select::make('nisn')
-                                        ->label('Pilih Siswa')
-                                        ->required()
-                                        ->searchable()
-                                        ->options(Siswa::pluck('nama', 'nisn')),
+                                Forms\Components\Fieldset::make('Data Siswa')
+                                    ->schema([
+                                        Forms\Components\Placeholder::make('nisn')
+                                            ->label('NISN')
+                                            ->content(function ($record) use ($siswa) {
+                                                if ($record && $record->siswa) {
+                                                    return $record->siswa->nisn;
+                                                }
+                                                return $siswa?->nisn ?? 'Tidak ada data';
+                                            })
+                                            ->disabled(),
+
+                                        Forms\Components\Placeholder::make('nama_siswa')
+                                            ->label('Nama Siswa')
+                                            ->content(function ($record) use ($siswa) {
+                                                if ($record && $record->siswa) {
+                                                    return $record->siswa->nama;
+                                                }
+                                                return $siswa?->nama ?? 'Tidak ada data';
+                                                })
+                                            ->disabled(),
+                                    ]),
 
                                 Forms\Components\Select::make('file_kategori_id')
                                     ->label('Kategori File')
@@ -61,54 +80,91 @@ class FileUploadResource extends Resource
                                     ->options($file_kategori->pluck('nama', 'id'))
                                     ->searchable(),
 
+                                // Forms\Components\TextInput::make('nama_file')
+                                //     ->label('Nama File')
+                                //     ->required()
+                                //     ->placeholder('Contoh: Ijazah, KK, Akta Kelahiran'),
                                 Forms\Components\TextInput::make('nama_file')
                                     ->label('Nama File')
                                     ->required()
-                                    ->placeholder('Masukkan Nama File'),
+                                    ->default(function () use ($siswa) {
+                                        $kategori = FileKategori::first(); // atau kategori default jika ada
+                                        $kategoriNama = Str::slug($kategori?->nama ?? 'File');
+                                        $nisn = $siswa?->nisn ?? '0000000000';
+                                        $nama = Str::slug($siswa?->nama ?? 'noname');
+                                        return "{$kategoriNama}_{$nisn}_{$nama}";
+                                    })
+                                    ->placeholder('Nama file otomatis terisi')
+                                    ->disabled(), // kalau kamu tidak ingin user mengubahnya
+
 
                                 Forms\Components\FileUpload::make('file')
                                     ->label('Unggah File')
-                                    ->disk('local') // nanti override simpan ke Google Drive
+                                    ->disk('local') // sementara, akan di-handle simpan ke Google Drive nanti
                                     ->visibility('private')
                                     ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/bmp', 'image/jpg'])
                                     ->required()
-                                    ->getUploadedFileNameForStorageUsing(function ($component, $file): string {
+                                    ->getUploadedFileNameForStorageUsing(function ($component, $file) use ($siswa) {
                                         $data = $component->getParentComponent()->getState();
-                                        $nisn = $data['nisn'] ?? Auth::user()->nisn ?? 'unknown';
-                                        $siswa = \App\Models\Siswa::where('nisn', $nisn)->first();
-                                        $kategori = FileKategori::find($data['file_kategori_id']);
+                                        $nisn = $siswa?->nisn ?? 'unknown';
                                         $nama = Str::slug($siswa?->nama ?? 'noname');
-                                        $kategoriNama = Str::slug($kategori?->name ?? 'kategori');
-
-                                        $namaFile = Str::slug($data['nama_file']);
+                                        $kategori = FileKategori::find($data['file_kategori_id']);
+                                        $kategoriNama = Str::slug($kategori?->nama ?? 'kategori');
+                                        $namaFile = Str::slug($data['nama_file'] ?? 'file');
                                         $extension = $file->getClientOriginalExtension();
 
-                                        return "{$nisn}_{$nama}_{$kategoriNama}_{$namaFile}.{$extension}";
+                                        return "{$kategoriNama}_{$nisn}_{$nama}_{$namaFile}.{$extension}";
                                     }),
                             ])
-                        ]),
+                    ]),
             ]);
     }
+
 
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(function (Builder $query) {
+                if (Auth::user()->hasRole('Siswa')) {
+                    $query->where('nisn', Auth::user()->username); // atau Auth::user()->nisn
+                }
+            })
             ->columns([
                 Tables\Columns\TextColumn::make('nisn')
-                    ->sortable()
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('kategori.name')
-                    ->label('Kategori'),
-                Tables\Columns\TextColumn::make('nama_file'),
+                    ->label('NISN')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('siswa.nama')
+                    ->label('Nama Siswa')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('kategori.nama')
+                    ->label('Kategori File')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('nama_file')
+                    ->label('Nama File')
+                    ->wrap(),
+
+                Tables\Columns\TextColumn::make('file')
+                    ->label('Link File')
+                    ->formatStateUsing(fn (string $state): string => route('file.download', ['file' => $state]))
+                    ->openUrlInNewTab()
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->tooltip('Klik untuk unduh'),
+
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->label('Tanggal Upload'),
+                    ->label('Tanggal Upload')
+                    ->dateTime('d M Y H:i'),
             ])
             ->filters([
-                //
+                // Tambah filter kategori / tanggal kalau ingin
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -116,6 +172,7 @@ class FileUploadResource extends Resource
                 ]),
             ]);
     }
+
 
     public static function getRelations(): array
     {
