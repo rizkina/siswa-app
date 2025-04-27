@@ -30,10 +30,6 @@ class FileUploadResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-s-document';
 
-    // public static function query(Builder $query): Builder
-    // {
-    //     return $query->with('siswa');
-    // }
     
     public static function form(Form $form): Form
     {
@@ -80,10 +76,6 @@ class FileUploadResource extends Resource
                                     ->options($file_kategori->pluck('nama', 'id'))
                                     ->searchable(),
 
-                                // Forms\Components\TextInput::make('nama_file')
-                                //     ->label('Nama File')
-                                //     ->required()
-                                //     ->placeholder('Contoh: Ijazah, KK, Akta Kelahiran'),
                                 Forms\Components\TextInput::make('nama_file')
                                     ->label('Nama File')
                                     ->required()
@@ -103,18 +95,7 @@ class FileUploadResource extends Resource
                                     ->disk('local') // sementara, akan di-handle simpan ke Google Drive nanti
                                     ->visibility('private')
                                     ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/bmp', 'image/jpg'])
-                                    ->required()
-                                    ->getUploadedFileNameForStorageUsing(function ($component, $file) use ($siswa) {
-                                        $data = $component->getParentComponent()->getState();
-                                        $nisn = $siswa?->nisn ?? 'unknown';
-                                        $nama = Str::slug($siswa?->nama ?? 'noname');
-                                        $kategori = FileKategori::find($data['file_kategori_id']);
-                                        $kategoriNama = Str::slug($kategori?->nama ?? 'kategori');
-                                        $namaFile = Str::slug($data['nama_file'] ?? 'file');
-                                        $extension = $file->getClientOriginalExtension();
-
-                                        return "{$kategoriNama}_{$nisn}_{$nama}_{$namaFile}.{$extension}";
-                                    }),
+                                    ->required(),
                             ])
                     ]),
             ]);
@@ -150,10 +131,11 @@ class FileUploadResource extends Resource
 
                 Tables\Columns\TextColumn::make('file')
                     ->label('Link File')
-                    ->formatStateUsing(fn (string $state): string => route('file.download', ['file' => $state]))
+                    ->formatStateUsing(fn (?string $state): string => $state ? route('file.download', ['file' => $state]) : '-')
                     ->openUrlInNewTab()
                     ->icon('heroicon-o-arrow-down-tray')
                     ->tooltip('Klik untuk unduh'),
+                
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Tanggal Upload')

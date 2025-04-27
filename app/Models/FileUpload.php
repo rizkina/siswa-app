@@ -18,4 +18,9 @@ class FileUpload extends Model
     {
         return $this->belongsTo(FileKategori::class, 'file_kategori_id');
     }
+
+    public function siswa()
+    {
+        return $this->belongsTo(Siswa::class, 'nisn', 'nisn');
+    }
 }

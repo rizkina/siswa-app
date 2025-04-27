@@ -137,7 +137,7 @@ class GoogleDriveSetupResource extends Resource
                 Tables\Actions\Action::make('authorize')
                     ->label('Autentikasi')
                     ->icon('heroicon-o-lock-closed')
-                    ->url(fn () => route('google.drive.redirect'))
+                    ->url(fn () => route('google.drive.auth'))
                     ->openUrlInNewTab()
                     ->visible(fn (GoogleDriveSetup $record) => $record->is_active),
 
