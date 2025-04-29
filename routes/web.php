@@ -26,6 +26,6 @@ Route::group(['middleware' => 'auth'], function () {
 
 // Route::middleware(['auth', 'role:super_admin'])->prefix('google-drive')->group(function() {
 // Route::prefix('admin')->group(function () {
-    Route::get('admin/auth', [GoogleDriveAuthController::class, 'redirect'])->name('google.drive.auth');
+Route::get('admin/auth', [GoogleDriveAuthController::class, 'redirect'])->name('google.drive.auth');
 // });
 Route::get('auth/google-drive/callback', [GoogleDriveAuthController::class, 'callback'])->name('google.drive.callback');

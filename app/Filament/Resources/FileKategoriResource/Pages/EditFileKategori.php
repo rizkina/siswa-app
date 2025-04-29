@@ -10,6 +10,7 @@ use Google\Client;
 use Google\Service\Drive;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
+use App\Helpers\GoogleDriveHelper;
 
 class EditFileKategori extends EditRecord
 {
@@ -91,15 +92,31 @@ class EditFileKategori extends EditRecord
             }
         }
     }
+    protected function afterSave(): void
+    {
+        
+        $record = $this->record;
+        
+        if ($record->folder_id && $record->nama) {
+            try {
+                GoogleDriveHelper::renameFolder($record->folder_id, $record->nama);
+                logger()->info("Folder Google Drive berhasil diubah namanya ke: " . $record->nama);
+                
+                Notification::make()
+                    ->title('Data berhasil diperbarui')
+                    ->body('Folder Google Drive telah diperbarui.')
+                    ->success()
+                    ->send();
+            } catch (\Exception $e) {
+                logger()->error("Gagal mengganti nama folder Google Drive: " . $e->getMessage());
 
+                Notification::make()
+                    ->title('Gagal mengganti nama folder')
+                    ->body($e->getMessage())
+                    ->danger()
+                    ->send();
+            }
+        }
+    }
 
-
-    // protected function afterDelete(): void
-    // {
-    //     Notification::make()
-    //         ->title('Data berhasil dihapus')
-    //         ->body('Folder Google Drive juga telah dihapus.')
-    //         ->success()
-    //         ->send();
-    // }
 }

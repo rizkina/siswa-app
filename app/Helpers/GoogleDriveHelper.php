@@ -78,22 +78,107 @@ class GoogleDriveHelper
         ];
     }
 
-    public static function createFolder($folderName, $parentId = null)
+    public static function isFolderNameExists(Drive $driveService, string $folderName, ?string $parentId = null): bool
     {
-        [$client, $defaultFolderId] = self::getGoogleClient();
-        $service = new Drive($client);
+        $escapedName = addslashes($folderName); // untuk hindari tanda kutip rusak
+        $query = "mimeType='application/vnd.google-apps.folder' and name='{$escapedName}' and trashed = false";
+        
+        if ($parentId) {
+            $query .= " and '{$parentId}' in parents";
+        }
 
-        $folderMetadata = new DriveFile([
-            'name' => $folderName,
-            'mimeType' => 'application/vnd.google-apps.folder',
-            'parents' => [$parentId ?? $defaultFolderId],
+        $response = $driveService->files->listFiles([
+            'q' => $query,
+            'fields' => 'files(id, name)',
         ]);
 
-        $folder = $service->files->create($folderMetadata, [
+        return count($response->getFiles()) > 0;
+    }
+
+    public static function createFolder(string $folderName): ?array
+    {
+        $service = self::getDriveService();
+
+        // Cek apakah folder sudah ada
+        $query = sprintf(
+            "mimeType='application/vnd.google-apps.folder' and name='%s' and trashed=false",
+            addslashes($folderName)
+        );
+
+        $response = $service->files->listFiles([
+            'q' => $query,
+            'fields' => 'files(id, name)',
+        ]);
+
+        if (count($response->getFiles()) > 0) {
+            $existingFolder = $response->getFiles()[0];
+
+            return [
+                'id' => $existingFolder->getId(),
+                'is_existing' => true,
+            ];
+        }
+
+        // Buat folder baru jika tidak ada
+        $fileMetadata = new \Google\Service\Drive\DriveFile([
+            'name' => $folderName,
+            'mimeType' => 'application/vnd.google-apps.folder',
+        ]);
+
+        $folder = $service->files->create($fileMetadata, [
             'fields' => 'id',
         ]);
 
-        return $folder->id ?? null;
+        return [
+            'id' => $folder->id,
+            'is_existing' => false,
+        ];
+    }
+
+    public static function renameDriveItem(Drive $driveService, string $fileId, string $newName): void
+    {
+        $fileMetadata = new DriveFile([
+            'name' => $newName,
+        ]);
+
+        $driveService->files->update($fileId, $fileMetadata);
+    }
+
+    public static function renameFolder(string $folderId, string $newName): void
+    {
+        $service = self::getDriveService();
+
+        try {
+            // Cek apakah sudah ada folder lain dengan nama yang sama (selain folder yang sedang diganti)
+            $query = sprintf(
+                "mimeType='application/vnd.google-apps.folder' and name='%s' and trashed=false",
+                addslashes($newName)
+            );
+
+            $existingFolders = $service->files->listFiles([
+                'q' => $query,
+                'fields' => 'files(id, name)'
+            ]);
+
+            foreach ($existingFolders->getFiles() as $folder) {
+                // Jika ada folder lain dengan nama sama tapi ID berbeda, tolak perubahan
+                if ($folder->getId() !== $folderId) {
+                    throw new \Exception("Folder dengan nama '{$newName}' sudah ada di Google Drive.");
+                }
+            }
+
+            // Lakukan perubahan nama
+            $fileMetadata = new \Google\Service\Drive\DriveFile([
+                'name' => $newName
+            ]);
+
+            $service->files->update($folderId, $fileMetadata);
+
+        } catch (\Google\Service\Exception $e) {
+            throw new \Exception("Google Drive error: " . $e->getMessage());
+        } catch (\Exception $e) {
+            throw $e; // lempar ulang untuk ditangani di luar
+        }
     }
 
     public static function deleteFileOrFolder($fileId)
