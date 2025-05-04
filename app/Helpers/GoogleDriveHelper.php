@@ -7,6 +7,7 @@ use Google\Service\Drive;
 use Google\Service\Drive\DriveFile;
 use App\Models\GoogleDriveSetup;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class GoogleDriveHelper
 {
@@ -54,27 +55,44 @@ class GoogleDriveHelper
     {
         [$client, $defaultFolderId] = self::getGoogleClient();
         $service = new Drive($client);
-
+    
+        // Siapkan metadata file
         $driveFile = new DriveFile();
         $driveFile->setName($namaFinal);
         $driveFile->setParents([$folderId ?? $defaultFolderId]);
-
-        $fullLocalPath = storage_path("app/public/{$localFilePath}");
+    
+        // Deteksi apakah path lokal berasal dari Storage Laravel atau path asli (realpath)
+        $fullLocalPath = file_exists($localFilePath)
+            ? $localFilePath
+            : Storage::disk('public')->path($localFilePath);
+    
         if (!file_exists($fullLocalPath)) {
-            throw new \Exception("File {$localFilePath} not found in storage.");
+            throw new \Exception("File {$localFilePath} tidak ditemukan.");
         }
-
+    
         $content = file_get_contents($fullLocalPath);
-
+    
+        // Upload file ke Google Drive
         $uploadedFile = $service->files->create($driveFile, [
             'data' => $content,
             'uploadType' => 'multipart',
-            'fields' => 'id, webViewLink',
+            'fields' => 'id, name',
         ]);
-
+    
+        // Tambahkan permission agar file dapat diakses publik
+        $permission = new \Google\Service\Drive\Permission();
+        $permission->setType('anyone');
+        $permission->setRole('reader');
+        $service->permissions->create($uploadedFile->id, $permission);
+    
+        // Ambil link tampilan
+        $file = $service->files->get($uploadedFile->id, [
+            'fields' => 'webViewLink',
+        ]);
+    
         return [
             'file_id' => $uploadedFile->id,
-            'web_view_link' => $uploadedFile->webViewLink,
+            'web_view_link' => $file->webViewLink,
         ];
     }
 

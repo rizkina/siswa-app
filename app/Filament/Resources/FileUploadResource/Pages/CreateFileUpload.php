@@ -3,59 +3,75 @@
 namespace App\Filament\Resources\FileUploadResource\Pages;
 
 use App\Filament\Resources\FileUploadResource;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use App\Models\Siswa;
 use App\Models\FileKategori;
 use Illuminate\Support\Facades\Auth;
-use App\HasCurrentSiswa;
-
+use Illuminate\Support\Str;
+use App\Helpers\GoogleDriveHelper;
+use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Storage;
 
 class CreateFileUpload extends CreateRecord
 {
-    use HasCurrentSiswa;
     protected static string $resource = FileUploadResource::class;
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // $siswa = Siswa::where('nisn', Auth::user()->username)->first();
-        $siswa = static::getCurrentSiswa();
-        $kategori = FileKategori::find($data['file_kategori_id']);
+        try {
+            $user = Auth::user();
+            $siswa = \App\HasCurrentSiswa::getCurrentSiswa();
 
-        if ($siswa) {
-            $data['nisn'] = $siswa->nisn;
-        }
-
-       
-        if (isset($data['file_kategori_id']) && $siswa && isset($data['file'])) {
-            $kategori = \App\Models\FileKategori::find($data['file_kategori_id']);
-            $kategoriNama = Str::slug($kategori?->nama ?? 'file');
-            $namaSiswa = Str::slug($siswa->nama ?? 'noname');
-    
-            $newFileName = "{$kategoriNama}_{$siswa->nisn}_{$namaSiswa}";
-    
-            $uploadedFile = $data['file'];
-    
-            // Cek kalau file sudah ada
-            if (Storage::disk('public')->exists($uploadedFile)) {
-                $fileContent = Storage::disk('public')->get($uploadedFile);
-                
-                // Upload ke Google Drive
-                $googleDrivePath = 'uploads/' . $newFileName . '.' . pathinfo($uploadedFile, PATHINFO_EXTENSION);
-    
-                Storage::disk('google')->put($googleDrivePath, $fileContent);
-    
-                // Setelah upload ke Google Drive, kita bisa simpan path Google Drive
-                $data['path'] = $googleDrivePath; // 'uploads/namafile.pdf'
-    
-                // Kalau mau hapus file lokal setelah upload, bisa
-                Storage::disk('public')->delete($uploadedFile);
+            if (!$siswa) {
+                throw new \Exception("Data siswa tidak ditemukan.");
             }
-    
-            // Simpan nama file ke database
-            $data['nama_file'] = $newFileName;
+
+            $kategori = FileKategori::find($data['file_kategori_id']);
+            if (!$kategori) {
+                throw new \Exception("Kategori file tidak ditemukan.");
+            }
+
+            // Ambil nama file yang sudah di-upload ke disk 'public'
+            $storedFilename = $data['file']; // Contoh: "abc123xyz.pdf"
+            $storedFilePath = Storage::disk('public')->path($storedFilename);
+
+            if (!file_exists($storedFilePath)) {
+                throw new \Exception("File tidak ditemukan di penyimpanan lokal.");
+            }
+
+            // Siapkan nama file final yang akan digunakan di Google Drive
+            $kategoriSlug = Str::slug($kategori->nama);
+            $namaSlug = Str::slug($siswa->nama);
+            $ext = pathinfo($storedFilename, PATHINFO_EXTENSION);
+            $namaFileFinal = "{$kategoriSlug}_{$siswa->nisn}_{$namaSlug}.{$ext}";
+
+            // Upload ke Google Drive
+            $uploadResult = GoogleDriveHelper::uploadFile(
+                $storedFilePath,
+                $namaFileFinal,
+                $kategori->folder_id
+            );
+
+            // Simpan data yang diperlukan ke database
+            $data['nisn'] = $siswa->nisn;
+            $data['nama_file'] = $namaFileFinal;
+            $data['google_drive_url'] = $uploadResult['web_view_link'] ?? null;
+            $data['google_drive_file_id'] = $uploadResult['id'] ?? null;
+
+            // Hapus file lokal setelah berhasil upload
+            Storage::disk('public')->delete($storedFilename);
+
+            // Hilangkan field 'file' agar tidak disimpan ulang ke lokal
+            unset($data['file']);
+
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Gagal Upload')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+
+            throw $e;
         }
 
         return $data;

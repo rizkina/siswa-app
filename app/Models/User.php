@@ -48,4 +48,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function siswa()
+    {
+        return $this->hasOne(Siswa::class, 'nisn', 'username'); // asumsinya username = nisn
+    }
 }

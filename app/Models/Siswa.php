@@ -42,7 +42,7 @@ class Siswa extends Model
         return $this->hasOne(Ayah::class, 'nisn', 'nisn');
     }
 
-    public function file()
+    public function fileUpload()
     {
         return $this->hasMany(FileUpload::class, 'nisn', 'nisn');
     }
