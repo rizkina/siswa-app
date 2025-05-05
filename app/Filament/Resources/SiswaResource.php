@@ -214,6 +214,7 @@ class SiswaResource extends Resource
                                     Column::make('ayah.pendidikan')->heading('Pendidikan Ayah')->formatStateUsing(fn($record) => $record->ayah->pendidikan ?? '-'),
                                     Column::make('ayah.penghasilan')->heading('Penghasilan Ayah')->formatStateUsing(fn($record) => $record->ayah->penghasilan ?? '-'),
                                 ])
+                                ->fromTable() // Mengikuti filter & sorting aktif
                                 ->withFilename(fn() => 'data_siswa_' . now()->format('Ymd_His') . '.xlsx'),
                         ])
                             ->tooltip('Export data siswa ke Excel')

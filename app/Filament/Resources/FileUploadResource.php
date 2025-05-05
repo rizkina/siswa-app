@@ -17,6 +17,8 @@ use App\HasCurrentSiswa;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Forms\Set;
+use Filament\Tables\Filters\SelectFilter;
 
 
 
@@ -62,15 +64,58 @@ class FileUploadResource extends Resource
                             ->schema([
                                 Forms\Components\Fieldset::make('Data Siswa')
                                     ->schema([
-                                        Forms\Components\Placeholder::make('nisn')
+                                        Forms\Components\Select::make('nisn')
                                             ->label('NISN')
-                                            ->content(fn($record) => $record?->siswa?->nisn ?? HasCurrentSiswa::getCurrentSiswa()?->nisn ?? 'Tidak ada data')
-                                            ->disabled(),
+                                            ->options(function () {
+                                                if (Auth::user()->hasRole(['Admin', 'super_admin'])) {
+                                                    return Siswa::pluck('nisn', 'nisn'); // pastikan key & value sesuai
+                                                }
+                                                return [];
+                                            })
+                                            ->required(Auth::user()->hasRole(['Admin', 'super_admin']))
+                                            ->visible(Auth::user()->hasRole(['Admin', 'super_admin']))
+                                            ->searchable()
+                                            ->reactive()
+                                            ->afterStateUpdated(function ($state, Set $set) {
+                                                $siswa = Siswa::where('nisn', $state)->first();
+                                                $set('nama_siswa', $siswa?->nama ?? '-');
+                                            })
+                                            ->afterStateHydrated(function ($state, Set $set) {
+                                                $siswa = Siswa::where('nisn', $state)->first();
+                                                $set('nama_siswa', $siswa?->nama ?? '-');
+                                            }),
 
-                                        Forms\Components\Placeholder::make('nama_siswa')
+                                        Forms\Components\Hidden::make('nama_siswa'),
+
+                                        Forms\Components\Placeholder::make('nama_siswa_show')
                                             ->label('Nama Siswa')
-                                            ->content(fn($record) => $record?->siswa?->nama ?? HasCurrentSiswa::getCurrentSiswa()?->nama ?? 'Tidak ada data')
-                                            ->disabled(),
+                                            ->content(fn($get) => $get('nama_siswa') ?? '-')
+                                            // ->required(Auth::user()->hasRole(['Admin', 'super_admin']))
+                                            ->visible(Auth::user()->hasRole(['Admin', 'super_admin'])),
+
+                                        Forms\Components\Placeholder::make('nisn_siswa_autofill')
+                                            ->label('NISN')
+                                            ->content(function () {
+                                                if (Auth::user()->hasRole('Siswa')) {
+                                                    $siswa = \App\HasCurrentSiswa::getCurrentSiswa();
+                                                    return $siswa?->nisn ?? '-';
+                                                }
+                                                return null;
+                                            })
+                                            ->visible(fn () => Auth::user()->hasRole('Siswa')),
+
+
+                                        Forms\Components\Placeholder::make('nama_siswa_autofill')
+                                            ->label('Nama Siswa')
+                                            ->content(function () {
+                                                if (Auth::user()->hasRole('Siswa')) {
+                                                    $siswa = \App\HasCurrentSiswa::getCurrentSiswa();
+                                                    return $siswa?->nama ?? '-';
+                                                }
+                                                return null;
+                                            })
+                                            ->visible(fn () => Auth::user()->hasRole('Siswa')),
+
                                     ]),
 
                                 Forms\Components\Select::make('file_kategori_id')
@@ -155,6 +200,13 @@ class FileUploadResource extends Resource
                             ->when($data['from'], fn($q) => $q->whereDate('created_at', '>=', $data['from']))
                             ->when($data['until'], fn($q) => $q->whereDate('created_at', '<=', $data['until']));
                     }),
+
+                SelectFilter::make('file_kategori_id')
+                    ->label('Kategori File')
+                    ->options(FileKategori::all()->pluck('nama', 'id'))
+                    ->preload()
+                    ->searchable(),
+                
             ])
             ->actions([
                 // Tables\Actions\EditAction::make(),
@@ -181,6 +233,7 @@ class FileUploadResource extends Resource
                                     Column::make('google_drive_url')->heading('Link Google Drive'),
                                     Column::make('created_at')->heading('Tanggal Upload')->format('d M Y H:i'),
                                 ])
+                                ->fromTable() // Mengikuti filter & sorting aktif
                                 ->withFilename(fn() => 'file_uploads_' . now()->format('Ymd_His') . '.xlsx')
                         ])->tooltip('Export ke Excel')
                     ]
