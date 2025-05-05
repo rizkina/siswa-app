@@ -6,6 +6,9 @@ use App\Filament\Resources\SiswaResource\Pages;
 use App\Filament\Resources\SiswaResource\RelationManagers;
 use App\Models\Siswa;
 use App\Models\Agama;
+use App\Models\Kelas;
+use App\Models\Ibu;
+use App\Models\Ayah;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,6 +19,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Traits\HasRoles;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use pxlrbt\FilamentExcel\Columns\Column;
 
 class SiswaResource extends Resource
 {
@@ -110,15 +116,15 @@ class SiswaResource extends Resource
     {
         return $table
             ->modifyQueryUsing(function (Builder $query) {
-                $is_Siswa = Auth::user()->hasRole('Siswa');
-
-                if ($is_Siswa) {
+                if (Auth::user()->hasRole('Siswa')) {
                     $query->where('nisn', Auth::user()->username);
                 }
 
                 $query->with([
                     'agama',
                     'kelas',
+                    'ibu',
+                    'ayah',
                 ]);
             })
             ->columns([
@@ -171,11 +177,51 @@ class SiswaResource extends Resource
                     ->relationship('kelas', 'kelas') // Hubungkan ke relasi 'kelas'
                     ->preload() // Load data langsung
                     ->searchable(), // Memungkinkan pencarian dalam daftar kelas
-             ])
+            ])
 
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
+
+            ->headerActions([
+                ...(
+                    Auth::user()->hasRole(['Admin', 'super_admin'])
+                    ? [
+                        ExportAction::make()->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('nisn')->heading('NISN'),
+                                    Column::make('nik')->heading('NIK'),
+                                    Column::make('nama')->heading('Nama Siswa'),
+                                    Column::make('jns_kelamin')->heading('Jenis Kelamin'),
+                                    Column::make('tempat_lahir')->heading('Tempat Lahir'),
+                                    Column::make('tanggal_lahir')->heading('Tanggal Lahir'),
+                                    Column::make('agama.agama')->heading('Agama')->formatStateUsing(fn($record) => $record->agama->agama ?? '-'),
+                                    Column::make('alamat')->heading('Alamat'),
+                                    Column::make('kelas.kelas')->heading('Kelas')->formatStateUsing(fn($record) => $record->kelas->kelas ?? '-'),
+
+                                    Column::make('ibu.nama')->heading('Nama Ibu')->formatStateUsing(fn($record) => $record->ibu->nama ?? '-'),
+                                    Column::make('ibu.nik')->heading('NIK Ibu')->formatStateUsing(fn($record) => $record->ibu->nik ?? '-'),
+                                    Column::make('ibu.tahun_lahir')->heading('Tahun Lahir Ibu')->formatStateUsing(fn($record) => $record->ibu->tahun_lahir ?? '-'),
+                                    Column::make('ibu.pekerjaan')->heading('Pekerjaan Ibu')->formatStateUsing(fn($record) => $record->ibu->pekerjaan ?? '-'),
+                                    Column::make('ibu.pendidikan')->heading('Pendidikan Ibu')->formatStateUsing(fn($record) => $record->ibu->pendidikan ?? '-'),
+                                    Column::make('ibu.penghasilan')->heading('Penghasilan Ibu')->formatStateUsing(fn($record) => $record->ibu->penghasilan ?? '-'),
+
+                                    Column::make('ayah.nama')->heading('Nama Ayah')->formatStateUsing(fn($record) => $record->ayah->nama ?? '-'),
+                                    Column::make('ayah.nik')->heading('NIK Ayah')->formatStateUsing(fn($record) => $record->ayah->nik ?? '-'),
+                                    Column::make('ayah.tahun_lahir')->heading('Tahun Lahir Ayah')->formatStateUsing(fn($record) => $record->ayah->tahun_lahir ?? '-'),
+                                    Column::make('ayah.pekerjaan')->heading('Pekerjaan Ayah')->formatStateUsing(fn($record) => $record->ayah->pekerjaan ?? '-'),
+                                    Column::make('ayah.pendidikan')->heading('Pendidikan Ayah')->formatStateUsing(fn($record) => $record->ayah->pendidikan ?? '-'),
+                                    Column::make('ayah.penghasilan')->heading('Penghasilan Ayah')->formatStateUsing(fn($record) => $record->ayah->penghasilan ?? '-'),
+                                ])
+                                ->withFilename(fn() => 'data_siswa_' . now()->format('Ymd_His') . '.xlsx'),
+                        ])
+                            ->tooltip('Export data siswa ke Excel')
+                    ]
+                    : []
+                ),
+            ])
+
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),

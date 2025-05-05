@@ -19,6 +19,7 @@ use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use pxlrbt\FilamentExcel\Columns\Column;
 
 
+
 class FileUploadResource extends Resource
 {
     use HasCurrentSiswa;
@@ -47,7 +48,7 @@ class FileUploadResource extends Resource
         return parent::getEloquentQuery()
             ->where('nisn', $siswa?->nisn ?? '-');
     }
-    
+
     public static function form(Form $form): Form
     {
 
@@ -63,12 +64,12 @@ class FileUploadResource extends Resource
                                     ->schema([
                                         Forms\Components\Placeholder::make('nisn')
                                             ->label('NISN')
-                                            ->content(fn ($record) => $record?->siswa?->nisn ?? HasCurrentSiswa::getCurrentSiswa()?->nisn ?? 'Tidak ada data')
+                                            ->content(fn($record) => $record?->siswa?->nisn ?? HasCurrentSiswa::getCurrentSiswa()?->nisn ?? 'Tidak ada data')
                                             ->disabled(),
 
                                         Forms\Components\Placeholder::make('nama_siswa')
                                             ->label('Nama Siswa')
-                                            ->content(fn ($record) => $record?->siswa?->nama ?? HasCurrentSiswa::getCurrentSiswa()?->nama ?? 'Tidak ada data')
+                                            ->content(fn($record) => $record?->siswa?->nama ?? HasCurrentSiswa::getCurrentSiswa()?->nama ?? 'Tidak ada data')
                                             ->disabled(),
                                     ]),
 
@@ -132,11 +133,11 @@ class FileUploadResource extends Resource
 
                 Tables\Columns\IconColumn::make('google_drive_url')
                     ->label('Link File')
-                    ->url(fn ($record) => $record->google_drive_url, true) // buka di tab baru
+                    ->url(fn($record) => $record->google_drive_url, true) // buka di tab baru
                     ->icon('heroicon-s-document-magnifying-glass')
                     ->tooltip('Klik untuk membuka file')
                     ->wrap(),
-              
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Tanggal Upload')
                     ->dateTime('d M Y H:i'),
@@ -151,24 +152,24 @@ class FileUploadResource extends Resource
                     ])
                     ->query(function (Builder $query, array $data) {
                         return $query
-                            ->when($data['from'], fn ($q) => $q->whereDate('created_at', '>=', $data['from']))
-                            ->when($data['until'], fn ($q) => $q->whereDate('created_at', '<=', $data['until']));
+                            ->when($data['from'], fn($q) => $q->whereDate('created_at', '>=', $data['from']))
+                            ->when($data['until'], fn($q) => $q->whereDate('created_at', '<=', $data['until']));
                     }),
             ])
             ->actions([
                 // Tables\Actions\EditAction::make(),
                 // Tables\Actions\DeleteAction::make(),
                 Tables\Actions\EditAction::make()
-                    ->visible(fn ($record) => Auth::user()->hasRole(['Admin', 'super_admin']) || $record->nisn === Auth::user()->nisn)
-                    ->authorize(fn ($record) => Auth::user()->hasRole(['Admin', 'super_admin']) || $record->nisn === Auth::user()->nisn),
+                    ->visible(fn($record) => Auth::user()->hasRole(['Admin', 'super_admin']) || $record->nisn === Auth::user()->nisn)
+                    ->authorize(fn($record) => Auth::user()->hasRole(['Admin', 'super_admin']) || $record->nisn === Auth::user()->nisn),
 
                 Tables\Actions\DeleteAction::make()
-                    ->visible(fn ($record) => Auth::user()->hasRole(['Admin', 'super_admin']) || $record->nisn === Auth::user()->nisn)
-                    ->authorize(fn ($record) => Auth::user()->hasRole(['Admin', 'super_admin']) || $record->nisn === Auth::user()->nisn),
+                    ->visible(fn($record) => Auth::user()->hasRole(['Admin', 'super_admin']) || $record->nisn === Auth::user()->nisn)
+                    ->authorize(fn($record) => Auth::user()->hasRole(['Admin', 'super_admin']) || $record->nisn === Auth::user()->nisn),
             ])
             ->headerActions([
                 ...(
-                    Auth::user()->hasRole(['Admin', 'super_admin']) 
+                    Auth::user()->hasRole(['Admin', 'super_admin'])
                     ? [
                         ExportAction::make()->exports([
                             ExcelExport::make()
@@ -180,13 +181,13 @@ class FileUploadResource extends Resource
                                     Column::make('google_drive_url')->heading('Link Google Drive'),
                                     Column::make('created_at')->heading('Tanggal Upload')->format('d M Y H:i'),
                                 ])
-                                ->withFilename(fn () => 'file_uploads_' . now()->format('Ymd_His') . '.xlsx')
+                                ->withFilename(fn() => 'file_uploads_' . now()->format('Ymd_His') . '.xlsx')
                         ])->tooltip('Export ke Excel')
                     ]
                     : []
                 ),
             ])
-            
+
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
