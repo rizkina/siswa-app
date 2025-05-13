@@ -3,9 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Pendidikan;
+use App\Models\Pekerjaan;
+use App\Models\Penghasilan;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Ayah extends Model
 {
+    use HasFactory, SoftDeletes;
     protected $table = 'ayahs';
 
     protected $fillable = [

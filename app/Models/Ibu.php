@@ -7,9 +7,12 @@ use App\Models\Pendidikan;
 use App\Models\Pekerjaan;
 use App\Models\Penghasilan;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Ibu extends Model
 {
+    use HasFactory, SoftDeletes;
     protected $table = 'ibus';
 
     protected $fillable = [

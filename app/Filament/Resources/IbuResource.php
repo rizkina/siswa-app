@@ -10,6 +10,8 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
@@ -131,9 +133,9 @@ class IbuResource extends Resource
                 Tables\Columns\TextColumn::make('penghasilan.penghasilan')
                     ->label('Penghasilan'),
             ])
-            ->filters([
-                //
-            ])
+            ->filters(
+                self::getTableFilters()
+            )
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
@@ -143,6 +145,42 @@ class IbuResource extends Resource
                 ]),
             ]);
     }
+
+    protected static function getTableFilters(): array
+    {
+        $filters = [
+            SelectFilter::make('kelas')
+                ->label('Kelas')
+                ->relationship('kelas', 'kelas')
+                ->preload()
+                ->searchable(),
+        ];
+
+        if (Auth::user()->hasRole(['Admin', 'super_admin'])) {
+            $filters[] = TrashedFilter::make();
+        }
+
+        return $filters;
+    }
+
+    // protected static function getTableBulkActions(): array
+    // {
+    //     $bulkActions = [
+    //         Tables\Actions\BulkActionGroup::make([
+    //             Tables\Actions\DeleteBulkAction::make(),
+    //         ]),
+    //     ];
+
+    //     if (Auth::user()->hasRole(['Admin', 'super_admin'])) {
+    //         $bulkActions[0]->actions([
+    //             Tables\Actions\DeleteBulkAction::make(),
+    //             Tables\Actions\ForceDeleteBulkAction::make(),
+    //             Tables\Actions\RestoreBulkAction::make(),
+    //         ]);
+    //     }
+
+    //     return $bulkActions;
+    // }
 
     public static function getRelations(): array
     {

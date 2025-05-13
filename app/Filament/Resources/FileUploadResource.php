@@ -19,6 +19,7 @@ use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Forms\Set;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TrashedFilter;
 
 
 
@@ -206,6 +207,7 @@ class FileUploadResource extends Resource
                     ->options(FileKategori::all()->pluck('nama', 'id'))
                     ->preload()
                     ->searchable(),
+                self::getTableFilters(),
                 
             ])
             ->actions([
@@ -248,6 +250,22 @@ class FileUploadResource extends Resource
             ]);
     }
 
+    protected static function getTableFilters(): array
+    {
+        $filters = [
+            SelectFilter::make('kelas')
+                ->label('Kelas')
+                ->relationship('kelas', 'kelas')
+                ->preload()
+                ->searchable(),
+        ];
+
+        if (Auth::user()->hasRole(['Admin', 'super_admin'])) {
+            $filters[] = TrashedFilter::make();
+        }
+
+        return $filters;
+    }
 
     public static function getRelations(): array
     {

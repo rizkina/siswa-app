@@ -6,9 +6,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\SiswaImport;
-use App\Exports\SiswaExport;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\View;
 
 class ImportSiswa extends Component
 {
@@ -16,7 +14,6 @@ class ImportSiswa extends Component
 
     public $file;
     public $importSummary = [];
-
 
     public function render()
     {
@@ -29,48 +26,64 @@ class ImportSiswa extends Component
             'file' => 'required|mimes:xlsx,xls,csv|max:2048'
         ]);
 
-
         try {
+            // Ambil nama asli file
+            $originalName = $this->file->getClientOriginalName();
+            
+            // Tentukan target path penyimpanan
+            $targetPath = storage_path('app/private/file_uploads/' . $originalName);
+            
+            // Simpan file ke lokasi sementara
+            $tempPath = $this->file->getRealPath();
+            
+            // Salin ke lokasi permanen
+            copy($tempPath, $targetPath);
+            Log::info('Cek file import:', [
+                'original_name' => $originalName,
+                'target_path' => $targetPath,
+                'exists' => file_exists($targetPath)
+            ]);
+    
             $import = new SiswaImport();
-            Excel::import($import, $this->file->getRealPath());
+            Excel::import($import, $targetPath);
 
-            // Tambahkan debugging
-            // dd($import->getHasilImport());
-
-            // Ambil hasil import dari getHasilImport() pada class import
             $this->importSummary = $import->getHasilImport();
-            // Simpan ke session supaya bisa diakses di halaman blade
             session()->flash('importSummary', $this->importSummary);
 
-            // Pastikan data sukses bertambah, kalau tidak ada berarti gagal
             if ($this->importSummary['sukses'] > 0 || $this->importSummary['gagal'] > 0) {
                 $this->dispatch('showMessage', [
                     'type' => 'success',
                     'message' => "Total: {$this->importSummary['total']} baris, Sukses: {$this->importSummary['sukses']} baris, Gagal: {$this->importSummary['gagal']} baris"
                 ]);
             } else {
-                throw new \Exception("Tidak ada data yang diproses. Periksa format file.");
+                session()->flash('error', 'Tidak ada data yang diproses. Periksa format file dan pastikan header sesuai template.');
+                throw new \Exception("Tidak ada data yang diproses. Periksa format file dan pastikan header sesuai template.");
             }
 
-            // Tampilkan pesan notifikasi pada flash
-            // session()->flash('message', "Total: {$this->importSummary['totalBaris']} baris, Sukses: {$this->importSummary['sukses']} baris, Gagal: {$this->importSummary['gagal']} baris");
-
-            // **Tambahkan reset file setelah sukses**
             $this->reset('file');
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            $failures = $e->failures();
+            // Log::error('Validasi Excel gagal: ' . json_encode($failures));
+
+            // $this->dispatch('showMessage', [
+            //     'type' => 'error',
+            //     'message' => 'Validasi data gagal. Periksa format dan isi file.'
+            // ]);
+            $errorMessages = [];
+            foreach ($failures as $failure) {
+                $errorMessages[] = "Baris {$failure->row()}: {$failure->errors()[0]}";
+            }
+            $this->dispatch('showMessage', [
+                'type' => 'error',
+               'message' => 'Validasi data gagal: ' . implode(', ', $errorMessages)
+            ]);
         } catch (\Exception $e) {
+            Log::error('Gagal import data siswa: ' . $e->getMessage());
+
             $this->dispatch('showMessage', [
                 'type' => 'error',
                 'message' => 'Terjadi kesalahan saat mengimport file: ' . $e->getMessage()
             ]);
-            Log::error('Gagal import data siswa: ' . $e->getMessage());
         }
-    }
-
-
-    public function export_excel()
-    {
-        // return response()->streamDownload(function () {
-        //     Excel::store(new SiswaExport, 'siswa.xlsx', 'local');
-        // }, 'siswa.xlsx');
     }
 }

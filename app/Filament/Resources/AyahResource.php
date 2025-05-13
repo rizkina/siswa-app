@@ -10,6 +10,8 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
@@ -130,9 +132,9 @@ class AyahResource extends Resource
                 Tables\Columns\TextColumn::make('penghasilan.penghasilan')
                     ->label('Penghasilan'),
             ])
-            ->filters([
-                //
-            ])
+            ->filters(
+                self::getTableFilters()
+            )
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
@@ -141,6 +143,23 @@ class AyahResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    protected static function getTableFilters(): array
+    {
+        $filters = [
+            SelectFilter::make('kelas')
+                ->label('Kelas')
+                ->relationship('kelas', 'kelas')
+                ->preload()
+                ->searchable(),
+        ];
+
+        if (Auth::user()->hasRole(['Admin', 'super_admin'])) {
+            $filters[] = TrashedFilter::make();
+        }
+
+        return $filters;
     }
 
     public static function getRelations(): array

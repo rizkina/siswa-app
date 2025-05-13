@@ -26,6 +26,7 @@ class Siswa extends Model
         'agama_id',
         'alamat',
         'foto',
+        'id_kelas',
     ];
 
     public function agama()
@@ -50,7 +51,7 @@ class Siswa extends Model
     // Mendapatkan file berdasarkan kategori
     public function getFileByCategory($kategori)
     {
-        return $this->files()->where('kategori', $kategori)->first();
+        return $this->fileUpload()->where('kategori', $kategori)->first();
     }
 
     public function kelas()

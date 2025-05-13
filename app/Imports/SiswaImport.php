@@ -2,217 +2,287 @@
 
 namespace App\Imports;
 
-use App\Models\Siswa;
-use App\Models\Ibu;
-use App\Models\Ayah;
-use App\Models\Agama;
-use App\Models\Jurusan;
-use App\Models\Pendidikan;
-use App\Models\Pekerjaan;
-use App\Models\Penghasilan;
-use App\Models\Kelas;
-use App\Models\TahunPelajaran;
-use App\Models\Tingkat;
+use App\Models\{
+    Ayah, Ibu, Siswa, Agama, Jurusan, Kelas, Pendidikan,
+    Pekerjaan, Penghasilan, TahunPelajaran, Tingkat
+};
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToCollection;
-use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\{
+    ToCollection, WithHeadingRow, WithChunkReading
+};
+use Illuminate\Contracts\Queue\ShouldQueue;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
-
-class SiswaImport implements ToCollection, WithHeadingRow
+class SiswaImport implements ToCollection, WithHeadingRow, WithChunkReading
 {
-    public $sukses = 0;
-    public $gagal = 0;
-    public $totalBaris = 0;
-    public $gagalData = [];
     protected $tahunPelajaranAktif;
+    protected $referensi;
+
+    public int $sukses = 0;
+    public int $gagal = 0;
+    public int $totalBaris = 0;
+    protected $currentRow = 1;
+    public array $gagalData = [];
+
+    protected array $columnMap = [
+        'nisn', 'nipd', 'nik', 'nama', 'jns_kelamin', 'tempat_lahir', 'tanggal_lahir', 'agama', 'alamat',
+        'nama_ibu', 'nik_ibu', 'tahun_lahiribu', 'pendidikan_ibu', 'pekerjaan_ibu', 'penghasilan_ibu',
+        'nama_ayah', 'nik_ayah', 'tahun_lahirayah', 'pendidikan_ayah', 'pekerjaan_ayah', 'penghasilan_ayah',
+        'tingkat', 'jurusan', 'kelas'
+    ];
+
+    protected array $validationRules = [
+        'nisn' => 'required|numeric|digits:10|unique:siswas,nisn',
+        'nipd' => 'required|string|max:20',
+        'nik' => 'required|numeric|digits:16',
+        'nama' => 'required|string|max:100',
+        'jns_kelamin' => 'nullable|in:L,P',
+        'tempat_lahir' => 'nullable|string',
+        'tanggal_lahir' => 'nullable|date',
+        'agama' => 'nullable|string',
+        'alamat' => 'nullable|string',
+        'nama_ibu' => 'nullable|string',
+        'nik_ibu' => 'nullable|numeric|digits:16',
+        'tahun_lahiribu' => 'nullable|numeric|digits:4',
+        'pendidikan_ibu' => 'nullable|string',
+        'pekerjaan_ibu' => 'nullable|string',
+        'penghasilan_ibu' => 'nullable|string',
+        'nama_ayah' => 'nullable|string',
+        'nik_ayah' => 'nullable|numeric|digits:16',
+        'tahun_lahirayah' => 'nullable|numeric|digits:4',
+        'pendidikan_ayah' => 'nullable|string',
+        'pekerjaan_ayah' => 'nullable|string',
+        'penghasilan_ayah' => 'nullable|string',
+        'tingkat' => 'required|string',
+        'jurusan' => 'required|string',
+        'kelas' => 'required|string',
+    ];
 
     public function __construct()
     {
-        // $this->tahunPelajaranAktif = TahunPelajaran::where('status', 'aktif')->first();
         $this->tahunPelajaranAktif = TahunPelajaran::getTahunAktif();
+        $this->loadReferensi();
     }
 
-    public function collection(Collection $rows)
+    protected function loadReferensi()
     {
-        // Hapus baris pertama (header) jika ada
-        // $rows->shift();
-        
-        // Debugging untuk memastikan header sudah terhapus
-        // dd($rows->take(5));
-        
-        $rows = $rows->toArray();
-        $rows = collect($rows);
-        // dd($rows->take(5));
-        // dd(TahunPelajaran::getTahunAktif());
+        $this->referensi = [
+            'agama'       => Agama::pluck('id', 'agama')->mapWithKeys(function($id, $agama) {
+                return [strtolower($agama) => $id];}),
+            'tingkat'     => Tingkat::pluck('id', 'tingkat')->mapWithKeys(function($id, $tingkat) {
+                return [strtolower($tingkat) => $id];}),
+            'jurusan'     => Jurusan::pluck('id', 'kode_jurusan')->mapWithKeys(function($id, $kode) {
+                return [strtolower($kode) => $id];}),
+            'kelas'       => Kelas::pluck('id', 'kelas')->mapWithKeys(function($id, $kelas) {
+                return [strtolower($kelas) => $id];}),
+            'pendidikan'  => Pendidikan::pluck('id_pendidikan', 'pendidikan')->mapWithKeys(function($id, $pendidikan) { 
+                return [strtolower($pendidikan) => $id];}),
+            'pekerjaan'   => Pekerjaan::pluck('id_pekerjaan', 'pekerjaan')->mapWithKeys(function($id, $pekerjaan) {
+                return [strtolower($pekerjaan) => $id];}),
+            'penghasilan' => Penghasilan::pluck('id_penghasilan', 'penghasilan')->mapWithKeys(function($id, $penghasilan) {
+                return [strtolower($penghasilan) => $id];}),
+        ];
+    }
 
-        // Ambil semua referensi untuk menghindari query berulang
-        $existingAgama = Agama::pluck('id', 'agama');
-        $existingTingkat = Tingkat::pluck('id', 'tingkat');
-        $existingJurusan = Jurusan::pluck('id', 'kode_jurusan');
-        $existingKelas = Kelas::pluck('id', 'kelas');
-        
+    public function chunkSize(): int
+    {
+        return 200;
+    }
+
+    public function collection(Collection $rows): void
+    {
+        Log::info('Memproses file import siswa', ['rows' => $rows->count()]);
+
+        if ($rows->isEmpty()) {
+            throw new \Exception("File Excel kosong - tidak ada data yang dapat diproses");
+        }
+
+        $firstRow = $rows->first()->toArray();
+        if (count($firstRow) < count($this->columnMap)) {
+            throw new \Exception("Format kolom tidak valid - pastikan file memiliki " . count($this->columnMap) . " kolom");
+        }
+
         $batchSiswa = [];
         $batchIbu = [];
         $batchAyah = [];
 
-        
         foreach ($rows as $index => $row) {
-            if (!is_array($row)) {
-                continue; // Lewati baris jika bukan array
-            }
-    
-            // Simpan total baris
             $this->totalBaris++;
-            $row['nipd'] = (string) $row['nipd'];
-            $row['tingkat'] = (string) $row['tingkat']; 
-
             try {
-                // validari data input
-                $validator = Validator::make($row, [
-                    'nisn' => 'required|numeric|digits:10', // NISN
-                    'nipd' => 'required|string', // NIPD
-                    'nik' => 'required|numeric|digits:16', // NIK
-                    'nama' => 'required|string', // Nama
-                    'jns_kelamin' => 'nullable|in:L,P', // Jenis Kelamin
-                    'tempat_lahir' => 'nullable|string', // Tempat Lahir
-                    'tanggal_lahir' => 'nullable|date', // Tanggal Lahir
-                    'agama' => 'nullable|string', // Agama
-                    'alamat' => 'nullable|string', // Alamat
-                    'nama_ibu' => 'nullable|string', // Nama Ibu
-                    'nik_ibu' => 'nullable|numeric|digits:16', // NIK Ibu
-                    'tahun_lahiribu' => 'nullable|numeric|digits:4', // Tahun Lahir Ibu
-                    'pendidikan_ibu' => 'nullable|string', // Pendidikan Ibu
-                    'pekerjaan_ibu' => 'nullable|string', // Pekerjaan Ibu
-                    'penghasilan_ibu' => 'nullable|string', // Penghasilan Ibu
-                    'nama_ayah' => 'nullable|string', // Nama Ayah
-                    'nik_ayah' => 'nullable|numeric|digits:16', // NIK Ayah
-                    'tahun_lahirayah' => 'nullable|numeric|digits:4', // Tahun Lahir Ayah
-                    'pendidikan_ayah' => 'nullable|string', // Pendidikan Ayah
-                    'pekerjaan_ayah' => 'nullable|string', // Pekerjaan Ayah
-                    'penghasilan_ayah' => 'nullable|string', // Penghasilan Ayah
-                    'tingkat' => 'nullable|string', // Tingkat
-                    'jurusan' => 'nullable|string', // Jurusan
-                    'kelas' => 'nullable|string', // Kelas
-                ]);
-
-                if ($validator->fails()) {
-                    throw new \Exception($validator->errors()->first());
+                $mappedData = $this->mapRow($row->toArray());
+                $this->validateRow($mappedData);
+                if (Siswa::where('nisn', $mappedData['nisn'])->exists()) {
+                    throw new \Exception("Siswa dengan NISN {$mappedData['nisn']} sudah ada.");
                 }
 
-               // Cek apakah siswa dengan NISN sudah ada
-               if (Siswa::where('nisn', $row['nisn'])->exists()) {
-                    throw new \Exception("Siswa dengan NISN {$row['nisn']} sudah ada");
+                $agamaId = $this->getReferensiId('agama', strtolower($mappedData['agama']));
+                if ($agamaId === null) {
+                    throw new \Exception("Agama '{$mappedData['agama']}' tidak ditemukan di referensi.");
                 }
-
-                // Ambil atau buat data yang belum ada
-                $agamaId = $existingAgama[$row['agama']] ?? null;
-                $tingkatId = $existingTingkat[$row['tingkat']] ?? Tingkat::firstOrCreate
-                ([
-                    'tingkat' => $row['tingkat']
-                ])->id;
-                // Cek apakah jurusan sudah ada
-                $jurusanId = $existingJurusan[$row['jurusan']] ?? Jurusan::firstOrCreate
-                ([
-                    'kode_jurusan' => $row['jurusan'], 
-                    'nama_jurusan' => $row['jurusan'], 
-                    'kurikulum' => 'Merdeka'
-                ])->id;
-                // Cek apakah jurusan sudah ada
-                $kelasId = $existingKelas[$row['kelas']] ?? Kelas::firstOrCreate
-                ([
-                    'kelas' => $row['kelas'], 
-                    'id_tingkat' => $tingkatId, 
-                    'id_jurusan' => $jurusanId, 
-                    'id_tahun_pelajaran' => $this->tahunPelajaranAktif->id
-                ])->id;
-
-                // Tambah data siswa ke dalam batch
-                $batchSiswa[] = [
-                    'nisn' => $row['nisn'],
-                    'nipd' => $row['nipd'],
-                    'nik' => $row['nik'],
-                    'nama' => $row['nama'],
-                    'jns_kelamin' => $row['jns_kelamin'],
-                    'tempat_lahir' => $row['tempat_lahir'],
-                    'tanggal_lahir' => $row['tanggal_lahir'],
-                    'agama_id' => $agamaId,
-                    'alamat' => $row['alamat'],
-                    'id_kelas' => $kelasId,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-                // Tambah data ibu ke dalam batch
-                $batchIbu[] = [
-                    'nisn' => $row['nisn'],
-                    'nama' => $row['nama_ibu'],
-                    'nik' => $row['nik_ibu'],
-                    'tahun_lahir' => $row['tahun_lahiribu'],
-                    'pendidikan_id' => Pendidikan::where('pendidikan', $row['pendidikan_ibu'])->value('id_pendidikan'),
-                    'pekerjaan_id' => Pekerjaan::where('pekerjaan', $row['pekerjaan_ibu'])->value('id_pekerjaan'),
-                    'penghasilan_id' => Penghasilan::where('penghasilan', $row['penghasilan_ibu'])->value('id_penghasilan'),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-                // Tambah data ayah ke dalam batch
-                $batchAyah[] = [
-                    'nisn' => $row['nisn'],
-                    'nama' => $row['nama_ayah'],
-                    'nik' => $row['nik_ayah'],
-                    'tahun_lahir' => $row['tahun_lahirayah'],
-                    'pendidikan_id' => Pendidikan::where('pendidikan', $row['pendidikan_ayah'])->value('id_pendidikan'),
-                    'pekerjaan_id' => Pekerjaan::where('pekerjaan', $row['pekerjaan_ayah'])->value('id_pekerjaan'),
-                    'penghasilan_id' => Penghasilan::where('penghasilan', $row['penghasilan_ayah'])->value('id_penghasilan'),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-                // dd($batchSiswa, $batchIbu, $batchAyah);
-
-                $this->sukses++;
+                $tingkatId = $this->getReferensiId('tingkat', strtoupper($mappedData['tingkat']), fn($v) => $this->createTingkat($v));
+                if ($tingkatId === null) {
+                    throw new \Exception("Tingkat '{$mappedData['tingkat']}' tidak ditemukan di referensi.");
+                }
+                $jurusanId = $this->getReferensiId('jurusan', strtoupper($mappedData['jurusan']), fn($v) => $this->createJurusan($v));
+                if ($jurusanId === null) {
+                    throw new \Exception("Jurusan '{$mappedData['jurusan']}' tidak ditemukan di referensi.");
+                }
+                $kelasId = $this->getReferensiId('kelas', strtoupper($mappedData['kelas']), fn($v) => $this->createKelas($v, $tingkatId, $jurusanId));
+                if ($kelasId === null) {
+                    throw new \Exception("Kelas '{$mappedData['kelas']}' tidak ditemukan di referensi.");
+                }
                 
+                $batchSiswa[] = $this->mapSiswaData($mappedData, $agamaId, $kelasId);
+                $batchIbu[] = $this->mapOrtuData($mappedData, 'ibu');
+                $batchAyah[] = $this->mapOrtuData($mappedData, 'ayah');
+                
+                $this->sukses++;
             } catch (\Exception $e) {
-                // Jika gagal, tambah counter gagal dan simpan data gagal
                 $this->gagal++;
                 $this->gagalData[] = [
-                    'baris' => $index + 1,
-                    'data'  => $row,
-                    'error' => $e->getMessage()
+                    'baris' => $this->currentRow,
+                    'data'  => $row->toArray(),
+                    'error' => $e->getMessage(),
                 ];
-                // dd($this->gagal);
-                // dd($this->gagalData);
-                // Simpan log error
-                Log::error("Gagal import data siswa di baris ke-" . ($index + 1) . " : " . $e->getMessage());
+                Log::error("Gagal import baris " . ($this->currentRow) . ": " . $e->getMessage());
             }
+            $this->currentRow++;
         }
-
-        // Bulk insert data siswa, ibu, dan ayah
-        DB::beginTransaction();
-        try {
-            // Insert data siswa, ibu, dan ayah ke dalam database
-            if (!empty($batchSiswa)) {
-                Siswa::insert($batchSiswa);
-                $insertedSiswa = Siswa::whereIn('nisn', array_column($batchSiswa, 'nisn'))->get();
-                foreach ($insertedSiswa as $siswa) {
-                    app(\App\Observers\SiswaObserver::class)->created($siswa);
-                }
-            }
-            
-            if (!empty($batchIbu)) Ibu::insert($batchIbu);
-            if (!empty($batchAyah)) Ayah::insert($batchAyah);
-            
-            DB::commit();
-            Log::info("Data siswa berhasil diimpor: {$this->sukses} berhasil, {$this->gagal} gagal");
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error("Gagal menyimpan data siswa: " . $e->getMessage());
-            // dd($e->getMessage());
+        if (!empty($this->gagalData)) {
+            session()->flash('gagalImport', $this->gagalData);
+        }
+        if ($batchSiswa) {
+            $this->insertData($batchSiswa, $batchIbu, $batchAyah);
         }
     }
 
+    protected function mapRow(array $rowData): array
+    {
+        $mapped = [];
+        foreach ($this->columnMap as $key) {
+            $mapped[$key] = $rowData[$key] ?? null;
+        }
+        if (isset($mapped['nipd'])) {
+            $mapped['nipd'] = (string) $mapped['nipd'];
+        }
+        if (isset($mapped['nisn'])) {
+            $mapped['nisn'] = (string) $mapped['nisn'];
+        }
+        if (isset($mapped['nik'])) {
+            $mapped['nik'] = (string) $mapped['nik'];
+        }
+        if (is_numeric($mapped['tanggal_lahir'])) {
+            $mapped['tanggal_lahir'] = Date::excelToDateTimeObject($mapped['tanggal_lahir'])->format('Y-m-d');
+        }
+        if (isset($mapped['tingkat'])) {
+            $mapped['tingkat'] = strtoupper($mapped['tingkat']);
+        }
+        if (isset($mapped['jurusan'])) {
+            $mapped['jurusan'] = strtoupper($mapped['jurusan']);
+        }
+        if (isset($mapped['kelas'])) {
+            $mapped['kelas'] = strtoupper($mapped['kelas']);
+        }
+        return $mapped;
+    }
 
-    public function getHasilImport()
+    protected function validateRow(array $row): void
+    {
+        $validator = Validator::make($row, $this->validationRules);
+        if ($validator->fails()) {
+            throw new \Exception($validator->errors()->first());
+        }
+    }
+
+    protected function getReferensiId($type, $key, $createCallback = null)
+    {
+        if (isset($this->referensi[$type][$key])) {
+            return $this->referensi[$type][$key];
+        }
+        if ($createCallback) {
+            return $createCallback($key);
+        }
+        return null;
+    }
+
+    protected function createTingkat(string $tingkat): int
+    {
+        $model = Tingkat::firstOrCreate(['tingkat' => $tingkat]);
+        return $this->referensi['tingkat'][$tingkat] = $model->id;
+    }
+
+    protected function createJurusan(string $kode): int
+    {
+        $model = Jurusan::firstOrCreate(
+            ['kode_jurusan' => $kode],
+            ['nama_jurusan' => $kode, 'kurikulum' => 'Merdeka']
+        );
+        return $this->referensi['jurusan'][$kode] = $model->id;
+    }
+
+    protected function createKelas(string $kelas, int $tingkatId, int $jurusanId): int
+    {
+        $cacheKey = "{$kelas}-{$tingkatId}-{$jurusanId}";
+        if (!isset($this->referensi['kelas'][$cacheKey])) {
+            $model = Kelas::firstOrCreate(
+                [
+                    'kelas' => $kelas,
+                    'id_tingkat' => $tingkatId,
+                    'id_jurusan' => $jurusanId,
+                    'id_tahun_pelajaran' => $this->tahunPelajaranAktif->id
+                ],
+                ['created_at' => now(), 'updated_at' => now()]
+            );
+            $this->referensi['kelas'][$cacheKey] = $model->id;
+        }
+        return $this->referensi['kelas'][$cacheKey];
+    }
+
+    protected function mapSiswaData(array $row, int $agamaId, int $kelasId): array
+    {
+        return [
+            'nisn' => $row['nisn'],
+            'nipd' => $row['nipd'],
+            'nik' => $row['nik'],
+            'nama' => $row['nama'],
+            'jns_kelamin' => $row['jns_kelamin'],
+            'tempat_lahir' => $row['tempat_lahir'],
+            'tanggal_lahir' => $row['tanggal_lahir'],
+            'agama_id' => $agamaId,
+            'alamat' => $row['alamat'],
+            'id_kelas' => $kelasId,
+        ];
+    }
+
+    protected function mapOrtuData(array $row, string $tipe): array
+    {
+        return [
+            'nisn' => $row['nisn'],
+            'nama' => $row["nama_{$tipe}"],
+            'nik' => $row["nik_{$tipe}"],
+            'tahun_lahir' => $row["tahun_lahir{$tipe}"],
+            'pendidikan_id' => $this->referensi['pendidikan'][strtolower($row["pendidikan_{$tipe}"])] ?? null,
+            'pekerjaan_id' => $this->referensi['pekerjaan'][strtolower($row["pekerjaan_{$tipe}"])] ?? null,
+            'penghasilan_id' => $this->referensi['penghasilan'][strtolower($row["penghasilan_{$tipe}"])] ?? null,
+        ];
+    }
+
+    protected function insertData(array $siswas, array $ibus, array $ayahs): void
+    {
+        DB::transaction(function () use ($siswas, $ibus, $ayahs) {
+            Log::info('Inserting Siswa:', $siswas);
+            Siswa::insert($siswas);
+            Log::info('Inserting Ibu:', $ibus);
+            Ibu::insert($ibus);
+            Log::info('Inserting Ayah:', $ayahs);
+            Ayah::insert($ayahs);
+        });
+    }
+
+    public function getHasilImport(): array
     {
         return [
             'total'      => $this->totalBaris,
@@ -220,6 +290,5 @@ class SiswaImport implements ToCollection, WithHeadingRow
             'gagal'      => $this->gagal,
             'gagalData'  => $this->gagalData,
         ];
-        // dd($this->getHasilImport());
     }
 }

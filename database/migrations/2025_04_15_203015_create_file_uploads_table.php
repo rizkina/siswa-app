@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('nama_file');
             $table->string('google_drive_file_id')->nullable();
             $table->text('google_drive_url')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

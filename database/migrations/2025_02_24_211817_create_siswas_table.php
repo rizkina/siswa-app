@@ -29,6 +29,9 @@ return new class extends Migration
             $table->foreignId('id_kelas')->nullable()->constrained('kelas')->cascadeOnUpdate()->nullOnDelete();
             $table->softDeletes();
             $table->timestamps();
+            
+            $table->index('nisn');
+            $table->index('id_kelas');
         });
     }
 

@@ -3,7 +3,6 @@
 namespace App\Policies;
 
 use App\Models\User;
-use App\Models\Siswa;
 use App\Models\FileUpload;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
@@ -24,8 +23,7 @@ class FileUploadPolicy
      */
     public function view(User $user, FileUpload $fileUpload): bool
     {
-        // return $user->can('view_file::upload');
-        return $user->hasRole(['Admin', 'super_admin']) || $user->username === $fileUpload->nisn;
+        return $user->can('view_file::upload');
     }
 
     /**
@@ -33,8 +31,7 @@ class FileUploadPolicy
      */
     public function create(User $user): bool
     {
-        // return $user->can('create_file::upload');
-        return $user->hasRole(['Admin', 'super_admin']) || Siswa::where('nisn', $user->username)->exists();
+        return $user->can('create_file::upload');
     }
 
     /**
@@ -42,8 +39,7 @@ class FileUploadPolicy
      */
     public function update(User $user, FileUpload $fileUpload): bool
     {
-        // return $user->can('update_file::upload');
-        return $user->hasRole(['Admin', 'super_admin']) || $user->siswa?->nisn === $fileUpload->nisn;
+        return $user->can('update_file::upload');
     }
 
     /**
@@ -51,8 +47,7 @@ class FileUploadPolicy
      */
     public function delete(User $user, FileUpload $fileUpload): bool
     {
-        // return $user->can('delete_file::upload');
-        return $user->hasRole(['Admin', 'super_admin']) || $user->username === $fileUpload->nisn;
+        return $user->can('delete_file::upload');
     }
 
     /**

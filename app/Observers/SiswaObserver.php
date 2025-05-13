@@ -6,6 +6,7 @@ use App\Models\Ibu;
 use App\Models\Ayah;
 use App\Models\Siswa;
 use App\Models\User;
+use App\Models\FileUpload;
 
 class SiswaObserver
 {
@@ -70,6 +71,12 @@ class SiswaObserver
                 'nisn' => $siswa->nisn,
             ]);
         }
+        $fileUploads = FileUpload::where('nisn', $siswa->getOriginal('nisn'))->first();
+        if ($fileUploads) {
+            $fileUploads->update([
+                'nisn' => $siswa->nisn,
+            ]);
+        }
     }
 
     /**
@@ -80,6 +87,7 @@ class SiswaObserver
         User::where('username', $siswa->nisn)->delete();
         Ibu::where('nisn', $siswa->nisn)->delete();
         Ayah::where('nisn', $siswa->nisn)->delete();
+        FileUpload::where('nisn', $siswa->nisn)->delete();
     }
 
     /**
@@ -87,7 +95,10 @@ class SiswaObserver
      */
     public function restored(Siswa $siswa): void
     {
-        //
+        User::where('username', $siswa->nisn)->restore();
+        Ibu::where('nisn', $siswa->nisn)->restore();
+        Ayah::where('nisn', $siswa->nisn)->restore();
+        FileUpload::where('nisn', $siswa->nisn)->restore();
     }
 
     /**
@@ -95,6 +106,9 @@ class SiswaObserver
      */
     public function forceDeleted(Siswa $siswa): void
     {
-        //
+        User::where('username', $siswa->nisn)->forceDelete();
+        Ibu::where('nisn', $siswa->nisn)->forceDelete();
+        Ayah::where('nisn', $siswa->nisn)->forceDelete();
+        FileUpload::where('nisn', $siswa->nisn)->forceDelete();
     }
 }

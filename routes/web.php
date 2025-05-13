@@ -16,16 +16,14 @@ Route::get('/login', function () {
 })->name('login');
 
 // Route import data siswa denganexcel
+// Route::group(['middleware' => 'auth'], function () {
+//     Route::get('import-siswa', ImportSiswa::class)->name('import_siswa');
+//     Route::post('import-siswa', ImportSiswa::class);
+// });
 Route::group(['middleware' => 'auth'], function () {
     Route::get('import-siswa', ImportSiswa::class)->name('import_siswa');
-    Route::post('import-siswa', ImportSiswa::class);
+    Route::post('import-siswa', [ImportSiswa::class, 'import_excel'])->name('import_siswa.process');
 });
 
-// Route::get('/siswa/import', [SiswaImportController::class, 'index'])->name('siswa.import');
-// Route::post('/siswa/import', [SiswaImportController::class, 'import'])->name('siswa.import');
-
-// Route::middleware(['auth', 'role:super_admin'])->prefix('google-drive')->group(function() {
-// Route::prefix('admin')->group(function () {
 Route::get('admin/auth', [GoogleDriveAuthController::class, 'redirect'])->name('google.drive.auth');
-// });
 Route::get('auth/google-drive/callback', [GoogleDriveAuthController::class, 'callback'])->name('google.drive.callback');

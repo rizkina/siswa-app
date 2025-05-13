@@ -29,6 +29,9 @@ return new class extends Migration
 
             $table->softDeletes();
             $table->timestamps();
+
+            $table->index('nisn');
+            $table->index(['pendidikan_id', 'pekerjaan_id', 'penghasilan_id']);
         });
     }
 

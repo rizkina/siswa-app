@@ -15,10 +15,10 @@ class Pekerjaan extends Model
 
     public function ibu()
     {
-        return $this->hasMany(Ibu::class, 'pendidikan_id', 'id_pendidikan');
+        return $this->hasMany(Ibu::class, 'pekerjaan_id', 'id_pekerjaan');
     }
-    // public function ayah()
-    // {
-    //     return $this->hasMany(Ayah::class, 'pendidikan_id', 'id_pendidikan');
-    // }
+    public function ayah()
+    {
+        return $this->hasMany(Ayah::class, 'pekerjaan_id', 'id_pekerjaan');
+    }
 }
