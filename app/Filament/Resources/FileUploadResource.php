@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Models\Siswa;
 use App\Models\FileKategori;
+use App\Models\Kelas;
 use App\Filament\Resources\FileUploadResource\Pages;
 use App\Models\FileUpload;
 use Filament\Forms;
@@ -207,7 +208,7 @@ class FileUploadResource extends Resource
                     ->options(FileKategori::all()->pluck('nama', 'id'))
                     ->preload()
                     ->searchable(),
-                self::getTableFilters(),
+                ...self::getTableFilters(),
                 
             ])
             ->actions([
@@ -252,15 +253,24 @@ class FileUploadResource extends Resource
 
     protected static function getTableFilters(): array
     {
-        $filters = [
-            SelectFilter::make('kelas')
+        $filters = [];
+        if (!Auth::user()->hasRole('Siswa')) {
+            $filters[] = SelectFilter::make('kelas')
                 ->label('Kelas')
-                ->relationship('kelas', 'kelas')
+                ->options(Kelas::pluck('kelas', 'id'))
                 ->preload()
-                ->searchable(),
-        ];
+                ->searchable()
+                ->query(function (Builder $query, $data) {
+                    if (!empty($data['value'])) {
+                        $query->whereHas('siswa.kelas', function ($q) use($data) {
+                            $q->where('id', $data['value']);
+                        });
+                    }
+                });
 
-        if (Auth::user()->hasRole(['Admin', 'super_admin'])) {
+        }
+        
+        if (!Auth::user()->hasRole(['Siswa'])) {
             $filters[] = TrashedFilter::make();
         }
 

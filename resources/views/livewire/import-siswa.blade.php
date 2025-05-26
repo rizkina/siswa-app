@@ -91,8 +91,8 @@
                                     @foreach ($summary['gagalData'] as $siswa)
                                         <tr class="border">
                                             <td class="py-2 px-4 border">{{ $siswa['baris'] }}</td>
-                                            <td class="py-2 px-4 border">{{ $siswa['data']['nisn'] }}</td>
-                                            <td class="py-2 px-4 border">{{ $siswa['data']['nama'] }}</td>
+                                            <td class="py-2 px-4 border">{{ $siswa['nisn'] }}</td>
+                                            <td class="py-2 px-4 border">{{ $siswa['nama'] }}</td>
                                             <td class="py-2 px-4 border text-red-600">{{ $siswa['error'] }}</td>
                                         </tr>
                                     @endforeach

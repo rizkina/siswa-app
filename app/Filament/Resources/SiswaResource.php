@@ -148,7 +148,7 @@ class SiswaResource extends Resource
                 ->searchable(),
         ];
 
-        if (Auth::user()->hasRole(['Admin', 'super_admin'])) {
+        if (!Auth::user()->hasRole(['Siswa'])) {
             $filters[] = TrashedFilter::make();
         }
 
@@ -164,7 +164,7 @@ class SiswaResource extends Resource
 
     protected static function getTableHeaderActions(): array
     {
-        if (!Auth::user()->hasRole(['Admin', 'super_admin'])) {
+        if (Auth::user()->hasRole(['Siswa'])) {
             return [];
         }
 
@@ -216,7 +216,7 @@ class SiswaResource extends Resource
             ]),
         ];
 
-        if (Auth::user()->hasRole(['Admin', 'super_admin'])) {
+        if (!Auth::user()->hasRole(['Siswa'])) {
             $bulkActions[0]->actions([
                 Tables\Actions\DeleteBulkAction::make(),
                 Tables\Actions\ForceDeleteBulkAction::make(),

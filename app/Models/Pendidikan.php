@@ -17,8 +17,8 @@ class Pendidikan extends Model
     {
         return $this->hasMany(Ibu::class, 'pendidikan_id', 'id_pendidikan');
     }
-    // public function ayah()
-    // {
-    //     return $this->hasMany(Ayah::class, 'pendidikan_id', 'id_pendidikan');
-    // }
+    public function ayah()
+    {
+        return $this->hasMany(Ayah::class, 'pendidikan_id', 'id_pendidikan');
+    }
 }

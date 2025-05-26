@@ -34,7 +34,10 @@ class SiswaObserver
         //     'pekerjaan_id' => null,
         //     'penghasilan_id' => null,
         // ]);
-
+        if (Siswa::withTrashed()
+            ->where('nisn', $siswa->nisn)->exists()) {
+                throw new \Exception('NISN {$siswa->nisn} sudah terdaftar');
+            }
         $user = User::create([
             'username' => $siswa->nisn, // Menggunakan NISN sebagai username
             'name' => $siswa->nama,

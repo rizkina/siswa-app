@@ -31,7 +31,7 @@ class Ayah extends Model
     }
 
     public function pendidikan()
-    {
+    {   
         return $this->belongsTo(Pendidikan::class, 'pendidikan_id', 'id_pendidikan');
     }
 

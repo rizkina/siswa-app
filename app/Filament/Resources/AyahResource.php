@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\AyahResource\Pages;
 use App\Filament\Resources\AyahResource\RelationManagers;
 use App\Models\Ayah;
+use App\Models\Kelas;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -78,22 +79,23 @@ class AyahResource extends Resource
                                     ->schema([
                                         Forms\Components\Select::make('pendidikan_id')
                                             ->label('Pendidikan')
-                                            ->relationship('pendidikan', 'pendidikan', function ($query) {
-                                                return $query->orderBy('id', 'asc');
-                                            })
+                                            ->options(\App\Models\Pendidikan::query()->pluck('pendidikan', 'id_pekerjaan'))
+                                            // ->relationship('pendidikan', 'pendidikan', function ($query) {
+                                            //     return $query->orderBy('id_pendidikan', 'asc');
+                                            // })
                                             ->required(),
-                                        Forms\Components\Select::make('pekerjaan_id')
-                                            ->label('Pekerjaan')
-                                            ->relationship('pekerjaan', 'pekerjaan', function ($query) {
-                                                return $query->orderBy('id_pekerjaan', 'asc');
-                                            })
-                                            ->required(),
-                                        Forms\Components\Select::make('penghasilan_id')
-                                            ->label('Penghasilan')
-                                            ->relationship('penghasilan', 'penghasilan', function ($query) {
-                                                return $query->orderBy('id_penghasilan', 'asc');
-                                            })
-                                            ->required(),
+                                        // Forms\Components\Select::make('pekerjaan_id')
+                                        //     ->label('Pekerjaan')
+                                        //     ->relationship('pekerjaan', 'pekerjaan', function ($query) {
+                                        //         return $query->orderBy('id_pekerjaan', 'asc');
+                                        //     })
+                                        //     ->required(),
+                                        // Forms\Components\Select::make('penghasilan_id')
+                                        //     ->label('Penghasilan')
+                                        //     ->relationship('penghasilan', 'penghasilan', function ($query) {
+                                        //         return $query->orderBy('id_penghasilan', 'asc');
+                                        //     })
+                                        //     ->required(),
                                     ]),
                             ])
                     ]),
@@ -147,13 +149,22 @@ class AyahResource extends Resource
 
     protected static function getTableFilters(): array
     {
-        $filters = [
-            SelectFilter::make('kelas')
+        $filters = [];
+        if (!Auth::user()->hasRole('Siswa')) {
+            $filters[] = SelectFilter::make('kelas')
                 ->label('Kelas')
-                ->relationship('kelas', 'kelas')
+                ->options(fn() => Kelas::exists()? Kelas::pluck ('kelas', 'id') : [])
+                // ->relationship('kelas', 'kelas')
                 ->preload()
-                ->searchable(),
-        ];
+                ->searchable()
+                ->query(function (Builder $query, $data) {
+                    if (!empty($data['value'])) {
+                        $query->whereHas('siswa.kelas', function ($q) use($data) {
+                            $q->where('id', $data['value']);
+                        });
+                    }
+                });
+        }
 
         if (Auth::user()->hasRole(['Admin', 'super_admin'])) {
             $filters[] = TrashedFilter::make();

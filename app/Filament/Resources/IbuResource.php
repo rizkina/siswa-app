@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\IbuResource\Pages;
 use App\Filament\Resources\IbuResource\RelationManagers;
 use App\Models\Ibu;
+use App\Models\Kelas;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -80,7 +81,7 @@ class IbuResource extends Resource
                                         Forms\Components\Select::make('pendidikan_id')
                                             ->label('Pendidikan')
                                             ->relationship('pendidikan', 'pendidikan', function ($query) {
-                                                return $query->orderBy('id', 'asc');
+                                                return $query->orderBy('id_pendidikan', 'asc');
                                             })
                                             ->required(),
                                         Forms\Components\Select::make('pekerjaan_id')
@@ -148,13 +149,22 @@ class IbuResource extends Resource
 
     protected static function getTableFilters(): array
     {
-        $filters = [
-            SelectFilter::make('kelas')
+        $filters = [];
+        if (!Auth::user()->hasRole('Siswa')) {
+            $filters[] = SelectFilter::make('kelas')
                 ->label('Kelas')
-                ->relationship('kelas', 'kelas')
+                ->options(fn() => Kelas::exists()? Kelas::pluck ('kelas', 'id') : [])
+                // ->relationship('kelas', 'kelas')
                 ->preload()
-                ->searchable(),
-        ];
+                ->searchable()
+                ->query(function (Builder $query, $data) {
+                    if (!empty($data['value'])) {
+                        $query->whereHas('siswa.kelas', function ($q) use($data) {
+                            $q->where('id', $data['value']);
+                        });
+                    }
+                });
+        }
 
         if (Auth::user()->hasRole(['Admin', 'super_admin'])) {
             $filters[] = TrashedFilter::make();

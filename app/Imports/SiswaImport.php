@@ -4,7 +4,7 @@ namespace App\Imports;
 
 use App\Models\{
     Ayah, Ibu, Siswa, Agama, Jurusan, Kelas, Pendidikan,
-    Pekerjaan, Penghasilan, TahunPelajaran, Tingkat
+    Pekerjaan, Penghasilan, TahunPelajaran, Tingkat, User
 };
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -109,6 +109,12 @@ class SiswaImport implements ToCollection, WithHeadingRow, WithChunkReading
         $batchIbu = [];
         $batchAyah = [];
 
+        // Tambahkan di awal collection()
+        $uniqueNisn = $rows->pluck('nisn')->unique();
+        if ($uniqueNisn->count() !== $rows->count()) {
+            throw new \Exception("Duplikasi NISN ditemukan dalam file");
+        }
+
         foreach ($rows as $index => $row) {
             $this->totalBaris++;
             try {
@@ -144,10 +150,13 @@ class SiswaImport implements ToCollection, WithHeadingRow, WithChunkReading
                 $this->gagal++;
                 $this->gagalData[] = [
                     'baris' => $this->currentRow,
-                    'data'  => $row->toArray(),
+                    'nisn' => $mappedData['nisn'] ?? null,
+                    'nama' => $mappedData['nama']?? null,
+                    // 'data'  => $row->toArray(),
                     'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
                 ];
-                Log::error("Gagal import baris " . ($this->currentRow) . ": " . $e->getMessage());
+                Log::error("Gagal import baris {$this->currentRow} (NISN: ".($mappedData['nisn'] ?? '-')."): " . $e->getMessage());
             }
             $this->currentRow++;
         }
@@ -272,14 +281,49 @@ class SiswaImport implements ToCollection, WithHeadingRow, WithChunkReading
 
     protected function insertData(array $siswas, array $ibus, array $ayahs): void
     {
-        DB::transaction(function () use ($siswas, $ibus, $ayahs) {
-            Log::info('Inserting Siswa:', $siswas);
-            Siswa::insert($siswas);
-            Log::info('Inserting Ibu:', $ibus);
-            Ibu::insert($ibus);
-            Log::info('Inserting Ayah:', $ayahs);
-            Ayah::insert($ayahs);
-        });
+        try {
+            DB::transaction(function () use ($siswas, $ibus, $ayahs) {
+                collect($siswas)->chunk(200)->each(function ($chunk) {
+                    Siswa::insert($chunk->toArray());
+                    // Log::info('Inserting Siswa:', $chunk);
+                });
+                // Siswa::insert($siswas);
+                collect($ibus)->chunk(200)->each(function ($chunk) {
+                    Ibu::insert($chunk->toArray());
+                    // Log::info('Inserting Ibu:', $chunk->toArray());
+                });
+                collect($ayahs)->chunk(200)->each(function ($chunk) {
+                    Ayah::insert($chunk->toArray());
+                    // Log::info('Inserting Ayah:', $chunk->toArray());
+                });
+    
+                // Membuat User untuk setiap siswa
+                $users = collect($siswas)->map(function ($siswa) {
+                    return [
+                        'username' => $siswa['nisn'], // Menggunakan NISN sebagai username
+                        'name' => $siswa['nama'],
+                        'email' => $siswa['nisn']. '@sekolah.sch.id', // Menggunakan NISN sebagai email
+                        'password' => bcrypt($siswa['tanggal_lahir'])
+                    ];
+                })->toArray();
+                // Log::info('Inserting User:', collect($users)->toArray());
+                // Bulk Insert
+                User::insert($users);
+    
+                $nisnList = collect($siswas)->pluck('nisn');
+    
+                User::whereIn('username', $nisnList)
+                    ->lazyById()
+                    ->each(function ($user) {
+                        $user->update(['role' => 'Siswa']);
+                    });
+            });
+            DB::commit();
+        }catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Gagal impor data siswa: ' . $e->getMessage());
+            throw $e;
+        }
     }
 
     public function getHasilImport(): array

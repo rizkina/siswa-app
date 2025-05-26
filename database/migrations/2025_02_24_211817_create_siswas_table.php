@@ -24,7 +24,7 @@ return new class extends Migration
             $table->foreign('agama_id')->references('id_agama')->on('agamas')->cascadeOnUpdate()->nullOnDelete();
             $table->string('alamat')->nullable();
             $table->text('foto')->nullable();
-
+            $table ->index(['nisn', 'nipd', 'nik', 'nama', 'tanggal_lahir']);
             // Menambhakan id_kelas untuk relasi One- to-Many
             $table->foreignId('id_kelas')->nullable()->constrained('kelas')->cascadeOnUpdate()->nullOnDelete();
             $table->softDeletes();
