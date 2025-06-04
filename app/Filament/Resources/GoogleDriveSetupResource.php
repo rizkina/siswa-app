@@ -48,7 +48,8 @@ class GoogleDriveSetupResource extends Resource
                                     ->placeholder('Masukkan Client Secret'),
                                 Forms\Components\TextInput::make('redirect_uri')
                                     ->label('Redirect URI')
-                                    ->maxLength(255),
+                                    ->maxLength(255)
+                                    ->placeholder('URL_ADDRESS/auth/google-drive/callback'),
                                 Forms\Components\TextArea::make('refresh_token')
                                     ->label('Refresh Token')
                                     ->rows(2),
